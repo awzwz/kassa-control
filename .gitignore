@@ -1,0 +1,12 @@
+.env
+data/uploads/
+data/*.sqlite*
+models/
+out/
+.venv/
+__pycache__/
+*.pyc
+*.mov
+*.mp4
+*.MOV
+.DS_Store
