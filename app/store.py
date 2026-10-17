@@ -152,6 +152,13 @@ def requeue_stale(max_age_sec: float) -> int:
             c.execute("COMMIT")
 
 
+def purge_old(ttl_hours: float) -> int:
+    """Удаляет результаты старше ttl_hours (видео удаляется сразу после обработки, здесь — записи и кадры)."""
+    cutoff = time.time() - ttl_hours * 3600
+    with _conn() as c:
+        return c.execute("DELETE FROM jobs WHERE status IN ('done','failed') AND finished_at < ?", (cutoff,)).rowcount
+
+
 def list_recent(limit: int = 50) -> list[dict[str, Any]]:
     with _conn() as c:
         rows = c.execute(

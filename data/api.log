@@ -1,109 +1,30 @@
-INFO:     Started server process [87126]
+INFO:     Started server process [92271]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
-INFO:     127.0.0.1:52159 - "GET /health HTTP/1.1" 200 OK
-INFO:api:принято Х-26.mov (5ceaa283, 3.8 МБ) → 5ceaa283.mov
-INFO:api:POST /api/v1/analyze → 200 за 32 мс
-INFO:     127.0.0.1:52161 - "POST /api/v1/analyze HTTP/1.1" 200 OK
-INFO:api:принято Х-25.mov (4d1e0821, 6.1 МБ) → 4d1e0821.mov
-INFO:api:POST /api/v1/analyze → 200 за 29 мс
-INFO:     127.0.0.1:52163 - "POST /api/v1/analyze HTTP/1.1" 200 OK
-INFO:api:принято Х-4.mov (8bc5ab7b, 14.0 МБ) → 8bc5ab7b.mov
-INFO:api:POST /api/v1/analyze → 200 за 39 мс
-INFO:     127.0.0.1:52165 - "POST /api/v1/analyze HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/8bc5ab7b → 200 за 1 мс
-INFO:     127.0.0.1:52167 - "GET /api/v1/jobs/8bc5ab7b HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/8bc5ab7b → 200 за 2 мс
-INFO:     127.0.0.1:52170 - "GET /api/v1/jobs/8bc5ab7b HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/8bc5ab7b → 200 за 1 мс
-INFO:     127.0.0.1:52172 - "GET /api/v1/jobs/8bc5ab7b HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/8bc5ab7b → 200 за 1 мс
-INFO:     127.0.0.1:52174 - "GET /api/v1/jobs/8bc5ab7b HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/8bc5ab7b → 200 за 1 мс
-INFO:     127.0.0.1:52176 - "GET /api/v1/jobs/8bc5ab7b HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/8bc5ab7b → 200 за 1 мс
-INFO:     127.0.0.1:52178 - "GET /api/v1/jobs/8bc5ab7b HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/8bc5ab7b → 200 за 1 мс
-INFO:     127.0.0.1:52180 - "GET /api/v1/jobs/8bc5ab7b HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/8bc5ab7b → 200 за 1 мс
-INFO:     127.0.0.1:52182 - "GET /api/v1/jobs/8bc5ab7b HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/8bc5ab7b → 200 за 1 мс
-INFO:     127.0.0.1:52184 - "GET /api/v1/jobs/8bc5ab7b HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/8bc5ab7b → 200 за 1 мс
-INFO:     127.0.0.1:52186 - "GET /api/v1/jobs/8bc5ab7b HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/8bc5ab7b → 200 за 1 мс
-INFO:     127.0.0.1:52188 - "GET /api/v1/jobs/8bc5ab7b HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/8bc5ab7b → 200 за 1 мс
-INFO:     127.0.0.1:52190 - "GET /api/v1/jobs/8bc5ab7b HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/8bc5ab7b → 200 за 1 мс
-INFO:     127.0.0.1:52192 - "GET /api/v1/jobs/8bc5ab7b HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/8bc5ab7b → 200 за 1 мс
-INFO:     127.0.0.1:52194 - "GET /api/v1/jobs/8bc5ab7b HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/8bc5ab7b → 200 за 1 мс
-INFO:     127.0.0.1:52196 - "GET /api/v1/jobs/8bc5ab7b HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/8bc5ab7b → 200 за 1 мс
-INFO:     127.0.0.1:52198 - "GET /api/v1/jobs/8bc5ab7b HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/8bc5ab7b → 200 за 1 мс
-INFO:     127.0.0.1:52200 - "GET /api/v1/jobs/8bc5ab7b HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/8bc5ab7b → 200 за 1 мс
-INFO:     127.0.0.1:52202 - "GET /api/v1/jobs/8bc5ab7b HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/8bc5ab7b → 200 за 1 мс
-INFO:     127.0.0.1:52204 - "GET /api/v1/jobs/8bc5ab7b HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/8bc5ab7b → 200 за 2 мс
-INFO:     127.0.0.1:52206 - "GET /api/v1/jobs/8bc5ab7b HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/5ceaa283/progress → 200 за 3 мс
-INFO:     127.0.0.1:52208 - "GET /api/v1/jobs/5ceaa283/progress HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52224 - "GET /ui/index.html?key=test HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52224 - "GET /ui/fonts.css HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52228 - "GET /ui/ui.js HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52226 - "GET /ui/ui.css HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs → 200 за 2 мс
-INFO:     127.0.0.1:52226 - "GET /api/v1/jobs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52226 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52228 - "GET /ui/rules.json HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs → 200 за 9 мс
-INFO:     127.0.0.1:52226 - "GET /api/v1/jobs HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/8bc5ab7b/progress → 200 за 10 мс
-INFO:     127.0.0.1:52224 - "GET /api/v1/jobs/8bc5ab7b/progress HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/5ceaa283/progress → 200 за 10 мс
-INFO:     127.0.0.1:52232 - "GET /api/v1/jobs/5ceaa283/progress HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/4d1e0821/progress → 200 за 11 мс
-INFO:     127.0.0.1:52231 - "GET /api/v1/jobs/4d1e0821/progress HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52232 - "GET /favicon.ico HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:52228 - "GET /ui/fonts/GeistMono-Variable.woff2 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52231 - "GET /ui/fonts/InterVariable.woff2 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52224 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52256 - "GET /ui/job.html?id=5ceaa283&key=test HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52258 - "GET /ui/ui.css HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52260 - "GET /ui/ui.js HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52256 - "GET /ui/fonts.css HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/5ceaa283/progress → 200 за 2 мс
-INFO:     127.0.0.1:52260 - "GET /api/v1/jobs/5ceaa283/progress HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/5ceaa283 → 200 за 4 мс
-INFO:     127.0.0.1:52260 - "GET /api/v1/jobs/5ceaa283 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52260 - "GET /favicon.ico HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:52260 - "GET /ui/fonts/InterVariable.woff2 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52256 - "GET /ui/fonts/GeistMono-Variable.woff2 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52283 - "GET /ui/job.html?id=4d1e0821&key=test HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52285 - "GET /ui/ui.css HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52283 - "GET /ui/fonts.css HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52287 - "GET /ui/ui.js HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/4d1e0821/progress → 200 за 3 мс
-INFO:     127.0.0.1:52287 - "GET /api/v1/jobs/4d1e0821/progress HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/4d1e0821 → 200 за 2 мс
-INFO:     127.0.0.1:52287 - "GET /api/v1/jobs/4d1e0821 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52285 - "GET /favicon.ico HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:52285 - "GET /ui/fonts/InterVariable.woff2 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52287 - "GET /ui/fonts/GeistMono-Variable.woff2 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52313 - "GET /ui/report.html?id=5ceaa283&key=test HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52313 - "GET /ui/fonts.css HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52315 - "GET /ui/report.css HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52317 - "GET /ui/ui.js HTTP/1.1" 200 OK
-INFO:api:GET /api/v1/jobs/5ceaa283/progress → 200 за 3 мс
-INFO:     127.0.0.1:52315 - "GET /api/v1/jobs/5ceaa283/progress HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52317 - "GET /favicon.ico HTTP/1.1" 404 Not Found
-INFO:api:GET /api/v1/jobs/5ceaa283 → 200 за 7 мс
-INFO:     127.0.0.1:52315 - "GET /api/v1/jobs/5ceaa283 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52315 - "GET /ui/fonts/InterVariable.woff2 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52317 - "GET /ui/fonts/GeistMono-Variable.woff2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52539 - "GET /health HTTP/1.1" 200 OK
+INFO:api:принято Х-14.mov (f8dfc87a, 27.4 МБ) → f8dfc87a.mov
+INFO:api:POST /api/v1/analyze → 200 за 124 мс
+INFO:     127.0.0.1:52541 - "POST /api/v1/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52558 - "GET /ui/job.html?id=f8dfc87a&key=test HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52558 - "GET /ui/fonts.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52560 - "GET /ui/ui.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52562 - "GET /ui/ui.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52568 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:api:GET /api/v1/jobs/f8dfc87a/progress → 200 за 31 мс
+INFO:     127.0.0.1:52566 - "GET /api/v1/jobs/f8dfc87a/progress HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52568 - "GET /ui/fonts/GeistMono-Variable.woff2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52566 - "GET /ui/fonts/InterVariable.woff2 HTTP/1.1" 200 OK
+INFO:api:GET /api/v1/jobs/f8dfc87a/progress → 200 за 3 мс
+INFO:     127.0.0.1:52566 - "GET /api/v1/jobs/f8dfc87a/progress HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52586 - "GET /ui/job.html?id=5ceaa283&key=test&theme=dark HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52586 - "GET /ui/fonts.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52588 - "GET /ui/ui.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52590 - "GET /ui/ui.js HTTP/1.1" 200 OK
+INFO:api:GET /api/v1/jobs/5ceaa283/progress → 200 за 18 мс
+INFO:     127.0.0.1:52588 - "GET /api/v1/jobs/5ceaa283/progress HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52590 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:api:GET /api/v1/jobs/5ceaa283 → 200 за 8 мс
+INFO:     127.0.0.1:52588 - "GET /api/v1/jobs/5ceaa283 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52588 - "GET /ui/fonts/InterVariable.woff2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52590 - "GET /ui/fonts/GeistMono-Variable.woff2 HTTP/1.1" 200 OK

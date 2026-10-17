@@ -1,5 +1,2 @@
-2026-10-17 23:18:36,268 INFO worker: обработчик Abdulins-MacBook-Air.local:87128 готов, предел 240 с
-2026-10-17 23:18:40,461 INFO pipeline: детектор YOLOX-s загружен, провайдер CPUExecutionProvider
-2026-10-17 23:18:46,242 INFO worker: 5ceaa283: violation, 1 событий, 6.4 с
-2026-10-17 23:18:56,107 INFO worker: 4d1e0821: no_violation, 0 событий, 9.9 с
-2026-10-17 23:19:18,409 INFO worker: 8bc5ab7b: violation, 1 событий, 22.3 с
+2026-10-17 23:27:51,240 INFO worker: обработчик Abdulins-MacBook-Air.local:92273 готов, предел 240 с
+2026-10-17 23:27:52,508 INFO pipeline: детектор YOLOX-s загружен, провайдер CPUExecutionProvider

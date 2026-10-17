@@ -127,7 +127,13 @@ def main() -> None:
     if n:
         log.info("вернул в очередь %d зависших задач", n)
     log.info("обработчик %s готов, предел %d с", worker, config.DEADLINE_SEC)
+    last_purge = 0.0
     while True:
+        if time.time() - last_purge > 600:
+            n = store.purge_old(config.RESULT_TTL_HOURS)
+            if n:
+                log.info("удалено старых результатов: %d", n)
+            last_purge = time.time()
         job = store.claim_job(worker)
         if job is None:
             time.sleep(config.WORKER_POLL_SEC)
