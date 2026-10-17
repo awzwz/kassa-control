@@ -28,3 +28,7 @@ INFO:api:GET /api/v1/jobs/5ceaa283 → 200 за 8 мс
 INFO:     127.0.0.1:52588 - "GET /api/v1/jobs/5ceaa283 HTTP/1.1" 200 OK
 INFO:     127.0.0.1:52588 - "GET /ui/fonts/InterVariable.woff2 HTTP/1.1" 200 OK
 INFO:     127.0.0.1:52590 - "GET /ui/fonts/GeistMono-Variable.woff2 HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [92271]

@@ -126,16 +126,18 @@ def desk_zone(work, h_seated: float, anc: dict) -> Box:
     return [x - 1.2 * h_seated, y - 0.2 * h_seated, x + 1.2 * h_seated, y + 0.9 * h_seated]
 
 
-def stand_ups(track: Track, fps: float, h_seated: float) -> list[tuple[float, float | None]]:
+def stand_ups(track: Track, fps: float, h_seated: float, work=None, h_stand: float | None = None) -> list[tuple[float, float | None]]:
     """Моменты, когда высота рамки растёт ≥ 1,25× от сидячей и держится не меньше секунды.
-    Возвращает (t_встал, t_сел | None)."""
+    «Сел обратно» засчитывается только рядом с рабочим местом: вдали от стола рамка уменьшается
+    из-за перспективы, а не потому что человек сел. Возвращает (t_встал, t_сел | None)."""
     pts = track.pts
+    near_desk = (lambda b: True) if work is None or not h_stand else (lambda b: dist(center(b), work) <= 0.35 * h_stand)
     out, i = [], 0
     while i < len(pts):
         t, b = pts[i]
         if (b[3] - b[1]) >= 1.25 * h_seated and (i == 0 or (pts[i - 1][1][3] - pts[i - 1][1][1]) < 1.25 * h_seated):
             j = i
-            while j < len(pts) and (pts[j][1][3] - pts[j][1][1]) >= 1.15 * h_seated:
+            while j < len(pts) and not ((pts[j][1][3] - pts[j][1][1]) < 1.15 * h_seated and near_desk(pts[j][1])):
                 j += 1
             if j - i >= fps:
                 out.append((round(t, 1), round(pts[j - 1][0], 1) if j < len(pts) else None))
@@ -181,7 +183,7 @@ def leave_event(track: Track, fps: float, duration: float, h_seated: float, work
     h_stand = standing_height(track)
     pts = track.pts
     last_t = pts[-1][0]
-    ups = stand_ups(track, fps, h_seated)
+    ups = stand_ups(track, fps, h_seated, work, h_stand)
     if not ups or ups[-1][1] is not None and last_t - ups[-1][1] > 1.0:
         return None
     t_up = ups[-1][0]
