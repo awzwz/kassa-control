@@ -187,8 +187,14 @@ def leave_event(track: Track, fps: float, duration: float, h_seated: float, work
     if not ups or ups[-1][1] is not None and last_t - ups[-1][1] > 1.0:
         return None
     t_up = ups[-1][0]
-    window = [(t, b) for t, b in pts if t >= max(t_up, last_t - 10.0)]
-    t_door, b_door = max(window, key=lambda tb: dist(center(tb[1]), work))
+    # Дверь: первый момент после вставания, когда кассир дальше 0,45 роста от стола.
+    # Если так далеко не уходил — самая дальняя точка последних 10 с трека.
+    crossing = next(((t, b) for t, b in pts if t >= t_up and dist(center(b), work) >= 0.45 * h_stand), None)
+    if crossing:
+        t_door, b_door = crossing
+    else:
+        window = [(t, b) for t, b in pts if t >= max(t_up, last_t - 10.0)]
+        t_door, b_door = max(window, key=lambda tb: dist(center(tb[1]), work))
     gone = last_t < duration - 0.5
     if dist(center(b_door), work) < 0.4 * h_stand and not gone:
         return None
