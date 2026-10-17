@@ -75,6 +75,8 @@ class Partial:
     scene: dict[str, Any] = field(default_factory=dict)
     timeline: list[dict[str, Any]] = field(default_factory=list)   # треки людей для интерфейса
     strip: list[dict[str, Any]] = field(default_factory=list)      # миниатюры кадров для шкалы
+    samples: list[dict[str, Any]] = field(default_factory=list)    # кадры ключевого момента, когда событий нет
+    key_moment: dict[str, Any] | None = None
     mode: str = "полный"
     fps: int = FPS
     lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
@@ -220,6 +222,41 @@ def _evidence(path: str, t: float, duration: float) -> list[tuple[float, str]]:
     return out
 
 
+def _key_moment(path: str, sc: S.Scene, fps: float, duration: float, partial: Partial, deadline: float) -> None:
+    """Запись без событий: самый показательный фрагмент и три кадра из него (само видео после анализа удаляется)."""
+    d = max(duration, 0.5)
+    leave = S.leave_event(sc.ct, fps, d, sc.h_seated, sc.work) if sc.cashier is not None else None
+    if leave:
+        t = leave.t
+        t2 = leave.door + 1.0 if leave.gone else t + 3.0
+        km = {"kind": "leave", "title": "Кассир уходит с рабочего места", "t": t,
+              "times": [t - 2.0, t, t2], "captions": ["у стола", "уходит", "после ухода"]}
+    elif sc.visitors:
+        v = sc.visitors[0]
+        t = min(v.t1, v.t0 + 2.0)
+        km = {"kind": "client", "title": "Обслуживание посетителя", "t": t,
+              "times": [v.t0, t, min(v.t1, t + 4.0)], "captions": ["входит", "у стола", "позже"]}
+    elif sc.cashier is not None:
+        km = {"kind": "work", "title": "Кассир на рабочем месте", "t": d / 2,
+              "times": [d * 0.25, d * 0.5, d * 0.75], "captions": ["начало", "середина", "конец"]}
+    else:
+        km = {"kind": "none", "title": "Людей у рабочего места не найдено", "t": d / 2,
+              "times": [d * 0.25, d * 0.5, d * 0.75], "captions": ["начало", "середина", "конец"]}
+    km["times"] = [round(min(d - 0.3, max(0.0, x)), 1) for x in km["times"]]
+    km["t"] = round(min(d - 0.3, max(0.0, km["t"])), 1)
+    samples = []
+    for x, cap in zip(km["times"], km["captions"]):
+        if time.monotonic() > deadline - 3.0:
+            break
+        try:
+            samples.append({"t": x, "caption": cap, "image_base64": frame_base64(path, x)})
+        except Exception as e:  # noqa: BLE001
+            log.warning("кадр %.1f не вырезан: %s", x, e)
+    with partial.lock:
+        partial.key_moment = {k: v for k, v in km.items() if k != "captions"}
+        partial.samples = samples
+
+
 def analyze(path: str, info: VideoInfo, partial: Partial, deadline: float,
             on_progress: Callable[[], None] | None = None, queue_depth: int = 0) -> None:
     fps, hd_sec, mode = choose_mode(info.duration, queue_depth)
@@ -274,3 +311,4 @@ def analyze(path: str, info: VideoInfo, partial: Partial, deadline: float,
             break
     if not events:
         partial.notes.append("Признаков нарушений по правилам первой версии не найдено.")
+        _key_moment(path, sc, fps, duration, partial, deadline)

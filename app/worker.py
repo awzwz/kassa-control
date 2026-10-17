@@ -53,6 +53,7 @@ def _details(partial: pipeline.Partial, info, elapsed: float) -> dict[str, Any]:
         "frames_total": partial.frames_total,
         "scene": partial.scene, "timeline": partial.timeline, "strip": partial.strip,
         "checked": partial.checked,
+        "samples": partial.samples, "key_moment": partial.key_moment,
         "notes": partial.notes,
         "findings": [
             {"type": f.type, "type_id": f.ui_type_id, "timecode_sec": f.timecode_sec, "t_end": f.ui_t_end,

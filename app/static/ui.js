@@ -258,11 +258,15 @@
         const dsec = d.duration_sec || 1; const step = dsec > 40 ? 15 : 5; const ticks = [];
         for (let t = 0; t <= dsec - step * 0.4; t += step) ticks.push(`<span style="left:${pct(t, dsec)}">${fmt(t)}</span>`);
         const strip = (d.strip || []).map(s => `<img src="data:image/jpeg;base64,${s.jpeg_base64}" title="${fmt(s.t)}">`).join("");
-        const pins = fs.map((f, i) => `<div class="pin" style="left:${pct(f.timecode_sec, dsec)};cursor:pointer" data-i="${i}">${sh(low(f) ? "w" : "d")}${i === sel ? `<em>${fmt(f.timecode_sec)}</em>` : ""}</div>`).join("");
-        const rng = fs.map(f => f.t_end ? `<div class="erng ${low(f) ? "w" : "d"}" style="left:${pct(f.timecode_sec, dsec)};width:${pct(Math.max(0.5, f.t_end - f.timecode_sec), dsec)}"></div>` : "").join("");
-        const at = fs[sel] ? fs[sel].timecode_sec : null;
-        return `<div class="card tl"><div class="tlh"><b>Шкала видео</b><span class="hint">нажмите на значок, чтобы перейти к событию · само видео удалено после анализа</span>
-          <div class="leg"><span>${sh("d")}нарушение</span><span>${sh("w")}требует проверки</span></div></div>
+        const km = d.key_moment, kmT = km && km.times && km.times.length ? km.times : null;
+        const pins = fs.length ? fs.map((f, i) => `<div class="pin" style="left:${pct(f.timecode_sec, dsec)};cursor:pointer" data-i="${i}">${sh(low(f) ? "w" : "d")}${i === sel ? `<em>${fmt(f.timecode_sec)}</em>` : ""}</div>`).join("")
+          : km ? `<div class="pin" style="left:${pct(km.t, dsec)}"><span class="okc">${I.ok}</span><em>${fmt(km.t)}</em></div>` : "";
+        const rng = fs.length ? fs.map(f => f.t_end ? `<div class="erng ${low(f) ? "w" : "d"}" style="left:${pct(f.timecode_sec, dsec)};width:${pct(Math.max(0.5, f.t_end - f.timecode_sec), dsec)}"></div>` : "").join("")
+          : kmT ? `<div class="erng ok" style="left:${pct(kmT[0], dsec)};width:${pct(Math.max(0.5, kmT[kmT.length - 1] - kmT[0]), dsec)}"></div>` : "";
+        const at = fs[sel] ? fs[sel].timecode_sec : km ? km.t : null;
+        const okc = `<span style="display:inline-grid;place-items:center;width:14px;height:14px;border-radius:50%;background:var(--ok);color:#fff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:9px;height:9px"><path d="M20 6 9 17l-5-5"/></svg></span>`;
+        return `<div class="card tl"><div class="tlh"><b>Шкала видео</b><span class="hint">${fs.length ? "нажмите на значок, чтобы перейти к событию" : "✓ — ключевой момент записи"} · само видео удалено после анализа</span>
+          <div class="leg">${fs.length ? `<span>${sh("d")}нарушение</span><span>${sh("w")}требует проверки</span>` : `<span>${okc}проверенный момент</span>`}</div></div>
           <div class="trk"><span class="lab">События</span><div class="etrack" id="etrack">${rng}${pins}</div><span class="lab">Кадры</span><div class="strip">${strip}${at != null ? `<div class="played" style="width:${pct(at, dsec)}"></div><div class="phead" style="left:${pct(at, dsec)}"></div>` : ""}</div></div>
           <div class="ruler">${ticks.join("")}</div>
           <div class="ctrls"><span class="cb" id="prevEv" title="Предыдущее событие">${I.prev}</span><span class="cb" id="nextEv" title="Следующее событие">${I.next}</span>
@@ -270,9 +274,15 @@
       }
       function leftHtml() {
         if (!fs.length) {
-          return `<div class="card view"><div class="evid"><div class="evh"><span class="mono" style="color:var(--ok)">${fmt(0)}–${fmt(d.duration_sec || 0)}</span><b>Запись просмотрена целиком, признаков нарушений не найдено</b><span class="tag i" style="margin-left:auto">${sh("i")}Нарушение не обнаружено</span></div>
-            <div class="evcol"><div class="frames" style="max-width:520px">${(d.strip || []).filter((_, i) => i % 8 === 2).slice(0, 3).map(s => `<figure><div class="th" style="height:200px"><img src="data:image/jpeg;base64,${s.jpeg_base64}"></div><figcaption><span class="mono">${fmt(s.t)}</span><span>кадр записи</span></figcaption></figure>`).join("")}</div>
-            <div class="sig"><div class="lab" style="margin-bottom:4px">Что проверила система</div><table>${(d.checked || []).map(c => `<tr><td class="mono">${c.result === "found" ? "◆" : c.result === "not_checked" ? "—" : "✓"}</td><td>${esc(c.category)}: ${esc(c.note)}</td></tr>`).join("")}</table></div></div></div></div>`;
+          const km = d.key_moment, sm = d.samples || []; const mainS = sm[1] || sm[0];
+          const player = mainS ? `<div class="player"><img src="data:image/jpeg;base64,${mainS.image_base64}"><span class="ovl tl">${fmt1(mainS.t)}</span></div>` : "";
+          const frs = sm.length ? sm.map(s => `<figure><div class="th"><img src="data:image/jpeg;base64,${s.image_base64}"></div><figcaption><span class="mono">${fmt(s.t)}</span><span>${esc(s.caption)}</span></figcaption></figure>`).join("")
+            : (d.strip || []).filter((_, i) => i % 8 === 2).slice(0, 3).map(s => `<figure><div class="th"><img src="data:image/jpeg;base64,${s.jpeg_base64}"></div><figcaption><span class="mono">${fmt(s.t)}</span><span>кадр записи</span></figcaption></figure>`).join("");
+          const range = km && km.times ? `${fmt(km.times[0])}–${fmt(km.times[km.times.length - 1])}` : `${fmt(0)}–${fmt(d.duration_sec || 0)}`;
+          const title = !km ? "Запись просмотрена целиком, признаков нарушений не найдено" : km.kind === "none" ? "Запись просмотрена целиком: людей у рабочего места не найдено" : `Ключевой момент: ${esc(km.title).toLowerCase()}`;
+          return `<div class="card view">${player}<div class="evid"><div class="evh"><span class="mono" style="color:var(--ok)">${range}</span><b>${title}</b><span class="tag ok" style="margin-left:auto">${sh("ok")}Проверено</span></div>
+            <div class="evcol"><div class="frames tall" style="max-width:${sm.length ? 470 : 520}px">${frs}</div>
+            <div class="sig"><div class="lab" style="margin-bottom:4px">Что проверила система</div><table>${(d.checked || []).map(c => `<tr><td class="mono" style="${c.result === "not_checked" ? "" : "color:var(--ok)"}">${c.result === "found" ? "◆" : c.result === "not_checked" ? "—" : "✓"}</td><td>${esc(c.category)}: ${esc(c.note)}</td></tr>`).join("")}</table></div></div></div></div>` + timelineHtml();
         }
         const f = fs[sel]; const frs = framesOf(sel); const main = frs[0];
         return `<div class="card view"><div class="player">${main ? `<img src="data:image/jpeg;base64,${main.image_base64}">${boxesHtml(f, main.timestamp_sec)}` : ""}<span class="ovl tl">${fmt1(f.timecode_sec)}</span><span class="ovl tr">${low(f) ? "▲" : "◆"} ${sel + 1} / ${fs.length}</span></div>
@@ -365,9 +375,12 @@
     const pages = [];
     const total = fs.length ? fs.length + 2 : 1;
     if (!fs.length) {
+      const sm = d.samples || [], km = d.key_moment;
+      const cleanFigs = sm.length ? `<h2><span class="n">01</span>${km && km.kind !== "none" ? `Ключевой момент: ${esc(km.title).toLowerCase()}` : "Кадры записи"}</h2><div class="figs" style="grid-template-columns:repeat(3,1fr)">${sm.map((s, k) => `<figure><div class="ph" style="height:58mm"><img src="data:image/jpeg;base64,${s.image_base64}"><span class="ts">${fmt(s.t)}</span></div><figcaption><span class="mono">Рис. ${k + 1} · ${fmt(s.t)}</span><span>${esc(s.caption)}</span></figcaption></figure>`).join("")}</div>` : "";
+      const n0 = sm.length ? 1 : 0;
       pages.push(`<section class="page">${hdr(1, 1)}<div style="margin-top:4.5mm"><div class="eyebrow">Заключение · автоматическая проверка видеозаписи кассы</div><h1>Признаки нарушений не обнаружены</h1><div class="sub">по видеозаписи ${esc(p.filename)}, проверка от ${dt(p.created_at).split(",")[0]}</div></div>${meta}
         <div class="verdict i"><span class="vic"><span class="sh i"></span></span><div><b>Нарушение не обнаружено</b><p>Проверено ${fmt(d.duration_sec)} видео по 7 категориям, признаков не найдено. Это не гарантирует отсутствия нарушений — при необходимости просмотрите запись.</p></div></div>
-        <h2><span class="n">01</span>Проверенные категории</h2>${catTbl}<h2><span class="n">02</span>Ограничения метода</h2>${limits}
+        ${cleanFigs}<h2><span class="n">0${1 + n0}</span>Проверенные категории</h2>${catTbl}<h2><span class="n">0${2 + n0}</span>Ограничения метода</h2>${limits}
         <div class="sign" style="grid-template-columns:1fr 1fr 1fr"><div class="line">Проверяющий<i></i></div><div class="line">Подпись<i></i></div><div class="line">Дата<i></i></div></div>${ftr}</section>`);
     } else {
       pages.push(`<section class="page">${hdr(1, total)}<div style="margin-top:4.5mm"><div class="eyebrow">Заключение · автоматическая проверка видеозаписи кассы</div><h1>Признаки возможных нарушений кассовой дисциплины</h1><div class="sub">по видеозаписи ${esc(p.filename)}, проверка от ${dt(p.created_at).split(",")[0]}</div></div>${meta}
