@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Каталог правил — КассаКонтроль</title>
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="ui.css">
+<style>
+.rl{max-width:1100px;margin:0 auto;padding:28px 24px 60px}
+.rl h1{margin:0 0 6px;font-size:26px;line-height:34px;font-weight:600;letter-spacing:-.02em}
+.rl .lead{color:var(--text2);margin:0 0 20px;font-size:15px;max-width:860px}
+.rc{border:1px solid var(--line);border-radius:10px;background:var(--bg);margin-bottom:12px;overflow:hidden}
+.rc .h{display:flex;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--side)}
+.rc .h b{font-weight:600;font-size:15px}
+.rc .h .mono{color:var(--brandText);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase}
+.rc .b{padding:12px 16px;display:grid;grid-template-columns:150px 1fr;gap:8px 16px;font-size:13.5px}
+.rc .b .lab{padding-top:2px}
+.rc q{display:block;quotes:none;color:var(--text2);border-left:2px solid var(--brand);padding-left:10px}
+.st{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:6px;font-size:12px;font-weight:500;margin-left:auto}
+.st.on{color:var(--ok);background:var(--okBg)}.st.off{color:var(--text2);background:var(--muted);border:1px solid var(--line)}
+.mom{font-size:12px;color:var(--label);margin:22px 0 8px;letter-spacing:.06em;text-transform:uppercase;font-family:var(--mono)}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="ui.js"></script>
+<script>
+(async () => {
+  const cat = await (await fetch("rules.json")).json();
+  const implemented = new Set(["T01","T02","T03","T06","T08","T09","T10","T15","T16"]);
+  const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const byMoment = {};
+  cat.types.forEach(t => (byMoment[t.moment] = byMoment[t.moment] || []).push(t));
+  const card = t => { const d = cat.documents[t.source.doc]; return `<div class="rc"><div class="h"><span class="mono">${t.id}</span><b>${esc(t.type)}</b><span class="st ${implemented.has(t.id) ? "on" : "off"}">${implemented.has(t.id) ? "проверяется автоматически" : "в этой версии не проверяется"}</span></div>
+    <div class="b"><span class="lab">Норма</span><div><b>${esc(d.short)}, ${esc(t.source.point)}</b> · <a href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.url.replace("https://",""))}</a><div style="font-size:12px;color:var(--label);margin-top:2px">${esc(d.full)}</div></div>
+    <span class="lab">Цитата</span><q>«${esc(t.source.quote)}»</q>
+    ${(t.extra_sources||[]).length ? `<span class="lab">Также</span><div>${t.extra_sources.map(x => `${esc(cat.documents[x.doc].short)}, ${esc(x.point)}${x.quote ? `: «${esc(x.quote)}»` : ""}`).join("<br>")}</div>` : ""}
+    ${t.extra_text ? `<span class="lab">Пояснение</span><div style="color:var(--text2)">${esc(t.extra_text)}</div>` : ""}
+    <span class="lab">Что видно на видео</span><div>${esc(t.observation.replace(/\{[a-z_]+\}/g, "…"))}</div>
+    <span class="lab">Почему это может быть нарушением</span><div>${esc(t.interpretation)}</div>
+    <span class="lab">Чего по видео не видно</span><div style="color:var(--text2)">${esc(t.cannot_see)}</div>
+    <span class="lab">Что проверить человеку</span><div>${esc(t.check)}</div></div></div>`; };
+  document.getElementById("root").innerHTML = `<div class="app"><div class="work" style="display:block">
+    <header class="top"><div class="crumbs"><a href="index.html">Проверки</a><span class="sep">/</span><b>Каталог правил</b></div><div class="spacer"></div><div class="svc"><span class="dotok"></span>каталог от ${esc(cat.version)}</div></header>
+    <div class="rl"><h1>Каталог правил и норм</h1><p class="lead">${esc(cat.note)} Всего ${cat.types.length} типов; ${implemented.size} из них проверяются автоматически в текущей версии, остальные описаны для полноты и ручной проверки.</p>
+    ${Object.entries(cat.moments).map(([k, title]) => byMoment[k] ? `<div class="mom">${esc(title)}</div>${byMoment[k].map(card).join("")}` : "").join("")}
+    <div class="mom">Источники</div>${Object.values(cat.documents).map(d => `<div class="rc"><div class="b"><span class="lab">${esc(d.short)}</span><div>${esc(d.full)}<br><a href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.url)}</a></div></div></div>`).join("")}
+    </div></div></div>`;
+})();
+</script>
+</body>
+</html>

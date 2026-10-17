@@ -26,7 +26,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from app.pipeline.detector import COCO, YOLOX  # noqa: E402
 from app.pipeline.video import frames, probe  # noqa: E402
 
-OUT = Path(__file__).resolve().parents[1] / "out" / "detections"
+OUT = Path(__file__).resolve().parents[1] / "out" / "detections"  # можно переопределить --out
 
 
 def make_tracker(fps: float) -> ByteTrackTracker:
@@ -90,7 +90,11 @@ def main() -> None:
     ap.add_argument("videos")
     ap.add_argument("--fps", type=int, default=5)
     ap.add_argument("--only", nargs="*")
+    ap.add_argument("--out")
     a = ap.parse_args()
+    global OUT
+    if a.out:
+        OUT = Path(a.out)
     vids = sorted(Path(a.videos).glob("*.mov"), key=lambda p: (len(p.stem), p.stem))
     if a.only:
         vids = [v for v in vids if v.stem in a.only]

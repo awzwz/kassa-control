@@ -32,8 +32,20 @@ STAGES = [
     "Сопоставление с правилами",
     "Кадры-доказательства",
 ]
-FPS = 5           # частота анализа
-HD_EVERY = FPS    # каждый пятый кадр (раз в секунду) — крупный проход ради мелких предметов
+FPS = 5           # частота анализа в полном режиме
+HD_EVERY_SEC = 1  # крупный проход (960×544) ради мелких предметов — раз в секунду
+# Стоимость кадра на сервере (с), замерено на 4 vCPU DigitalOcean при 2 потоках: 640×352 и 960×544
+COST_SMALL, COST_HD = 0.17, 0.42
+STRIP_N = 24      # миниатюр для шкалы в интерфейсе
+
+
+def choose_mode(duration: float, queue_depth: int) -> tuple[int, int, str]:
+    """(кадров в секунду, крупный проход каждые N с, название режима).
+    Полный режим, если видео и очередь позволяют уложиться примерно в 150 с; иначе экономный."""
+    full = duration * (FPS * COST_SMALL + COST_HD / HD_EVERY_SEC)
+    if full <= 200 and queue_depth < 3:
+        return FPS, HD_EVERY_SEC, "полный"
+    return 4, HD_EVERY_SEC, "экономный"
 
 
 @dataclass
@@ -62,6 +74,9 @@ class Partial:
     timed_out: bool = False
     scene: dict[str, Any] = field(default_factory=dict)
     timeline: list[dict[str, Any]] = field(default_factory=list)   # треки людей для интерфейса
+    strip: list[dict[str, Any]] = field(default_factory=list)      # миниатюры кадров для шкалы
+    mode: str = "полный"
+    fps: int = FPS
     lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 
     def progress(self, started: float) -> dict[str, Any]:
@@ -100,16 +115,20 @@ def _tracker(fps: float):
 
 
 def perceive(path: str, info: VideoInfo, partial: Partial, deadline: float,
-             on_progress: Callable[[], None] | None = None) -> list[dict[str, Any]]:
-    """Проход по кадрам: детекции, треки, яркость. Возвращает структуру frames для signals/rules."""
+             on_progress: Callable[[], None] | None = None, fps: int = FPS, hd_every_sec: int = HD_EVERY_SEC) -> list[dict[str, Any]]:
+    """Проход по кадрам: детекции, треки, яркость, миниатюры. Возвращает структуру frames для signals/rules."""
+    import base64
+
     import supervision as sv
 
     det = get_detector()
-    tracker = _tracker(FPS)
+    tracker = _tracker(fps)
     out: list[dict[str, Any]] = []
     prev = None
+    hd_every = max(1, fps * hd_every_sec)
+    strip_step = max(1, int(info.duration * fps / STRIP_N))
     budget_stop = deadline - 25.0  # оставляем время правилам и кадрам-доказательствам
-    for k, (t, img) in enumerate(frames(path, info, FPS)):
+    for k, (t, img) in enumerate(frames(path, info, fps)):
         if time.monotonic() > budget_stop:
             partial.timed_out = True
             partial.notes.append(f"Просмотр остановлен на {t:.0f} с из {info.duration:.0f}: не хватило времени.")
@@ -134,10 +153,15 @@ def perceive(path: str, info: VideoInfo, partial: Partial, deadline: float,
                         for b, i, s in zip(tracks.xyxy, tracks.tracker_id, tracks.confidence)],
             "objects": [{"c": d.name, "box": [round(v) for v in d.box], "s": round(d.score, 2)} for d in objects],
         }
-        if k % HD_EVERY == 0:
+        if k % hd_every == 0:
             hd = det(img, size=(960, 544), conf=0.15)
             rec["objects_hd"] = [{"c": d.name, "box": [round(v) for v in d.box], "s": round(d.score, 2)}
                                  for d in hd if d.cls != 0]
+        if k % strip_step == strip_step // 2 and len(partial.strip) < STRIP_N:
+            small = cv2.resize(img, (66, int(66 * img.shape[0] / img.shape[1])), interpolation=cv2.INTER_AREA)
+            ok, buf = cv2.imencode(".jpg", small, [cv2.IMWRITE_JPEG_QUALITY, 70])
+            if ok:
+                partial.strip.append({"t": round(t, 1), "jpeg_base64": base64.b64encode(buf.tobytes()).decode("ascii")})
         out.append(rec)
         partial.frames_done = k + 1
         if on_progress and k % 25 == 0:
@@ -197,23 +221,25 @@ def _evidence(path: str, t: float, duration: float) -> list[tuple[float, str]]:
 
 
 def analyze(path: str, info: VideoInfo, partial: Partial, deadline: float,
-            on_progress: Callable[[], None] | None = None) -> None:
+            on_progress: Callable[[], None] | None = None, queue_depth: int = 0) -> None:
+    fps, hd_sec, mode = choose_mode(info.duration, queue_depth)
+    partial.mode, partial.fps = mode, fps
     partial.stage = 2
-    partial.frames_total = max(1, int(info.duration * FPS))
+    partial.frames_total = max(1, int(info.duration * fps))
     if on_progress:
         on_progress()
 
     partial.stage = 3
-    struct = perceive(path, info, partial, deadline, on_progress)
+    struct = perceive(path, info, partial, deadline, on_progress, fps, hd_sec)
 
     partial.stage = 4
     if on_progress:
         on_progress()
-    seen_duration = struct[-1]["t"] + 1.0 / FPS if struct else 0.0
+    seen_duration = struct[-1]["t"] + 1.0 / fps if struct else 0.0
     duration = min(info.duration, seen_duration) if partial.timed_out else info.duration
-    sc = S.build_scene(struct, FPS, duration)
+    sc = S.build_scene(struct, fps, duration)
     probe = screen_probe_for(path, info, sc.anc["laptop"][0], struct) if "laptop" in sc.anc else None
-    events, sc, checked = rules.evaluate(struct, FPS, duration, probe)
+    events, sc, checked = rules.evaluate(struct, fps, duration, probe)
     with partial.lock:
         partial.checked = checked
         partial.scene = S.to_jsonable({

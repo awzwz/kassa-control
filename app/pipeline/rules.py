@@ -93,7 +93,8 @@ def rule_unattended(frames, sc: S.Scene, leave: S.Leave, duration: float) -> Eve
     ev.signals += [_sig(leave.t, "Кассир встаёт и отходит от рабочего места"),
                    _sig(leave.door, "Кассир у двери, выходит из помещения"),
                    _sig(min(leave.door + 1.0, duration), f"{label[0].upper() + label[1:]} остаются на столе без присмотра — правило сработало")]
-    ev.boxes = [_box(leave.door + 1.0, top.box, label, "obj"), _box(leave.t, _cashier_box_at(sc, leave.t), "кассир", "person")]
+    ev.boxes = [_box(leave.t, top.box, label, "obj"), _box(leave.door + 1.0, top.box, label, "obj"),
+                _box(leave.t, _cashier_box_at(sc, leave.t), "кассир", "person")]
     ev.fields["item_box"] = top.box
     ev.fields["item_share"] = round(top.share, 2)
     return ev

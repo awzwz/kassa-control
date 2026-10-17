@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API для жюри — КассаКонтроль</title>
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="ui.css">
+<style>
+.doc{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 440px;gap:32px;padding:28px 24px 60px}
+.doc h1{margin:0;font-size:26px;line-height:34px;font-weight:600;letter-spacing:-.02em}
+.doc .lead{color:var(--text2);margin:8px 0 0;font-size:15px}
+.doc h2{font-size:18px;line-height:26px;margin:30px 0 10px;font-weight:600;display:flex;gap:10px;align-items:center}
+.doc h2 code{font:600 14px/22px var(--mono)}
+.kv{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:12px}
+.kv div{display:grid;grid-template-columns:150px 1fr;padding:10px 14px;border-bottom:1px solid var(--line);font-size:13.5px}
+.kv div:last-child{border:0}
+.kv span:first-child{color:var(--label)}
+code.i{font:12.5px/20px var(--mono);background:var(--muted);padding:1px 6px;border-radius:4px;border:1px solid var(--line)}
+.cb{background:#0F1218;color:#E8EBF0;border-radius:10px;overflow:hidden;margin-bottom:14px}
+.cbh{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid #2A3140;font-size:12.5px;color:#A9B1BE}
+.cb pre{margin:0;padding:12px 14px;font:12.5px/19px var(--mono);white-space:pre-wrap;overflow-wrap:anywhere}
+.k{color:#7AA7FF}.s{color:#9FE0B8}.c{color:#8A93A2}.n{color:#F7B955}
+.tbl2{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:10px}
+.tbl2 th{text-align:left;font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--label);font-weight:500;padding:8px 10px;border-bottom:1px solid var(--line)}
+.tbl2 td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl2 td:first-child{font:12.5px/20px var(--mono);white-space:nowrap}
+.m{font:600 11px/16px var(--mono);padding:1px 5px;border-radius:4px}
+.m.post{background:var(--okBg);color:var(--ok)}.m.get{background:var(--selBg);color:var(--sel)}
+[data-theme="dark"] .m.get{color:var(--text)}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="ui.js"></script>
+<script>
+(async () => {
+  const host = location.origin;
+  const root = document.getElementById("root");
+  root.innerHTML = `<div class="app"><div class="work" style="display:block">
+    <header class="top"><div class="crumbs"><a href="index.html">Проверки</a><span class="sep">/</span><b>API для жюри</b></div><div class="spacer"></div><div class="svc" id="svc"><span class="dotok"></span>Сервис работает</div></header>
+    <div class="doc"><main>
+      <h1>API для автоматической проверки</h1>
+      <p class="lead">Два запроса: загрузить видео и забрать результат. Формат ответа — ровно как в разделе 10 технического задания.</p>
+      <div class="kv">
+        <div><span>Адрес</span><code class="i">${host}</code></div>
+        <div><span>Ключ</span><span>передаётся в заголовке <code class="i">X-API-Key</code>; без ключа — <code class="i">401</code></span></div>
+        <div><span>Формат видео</span><span>.mov (также .mp4), поле формы <code class="i">file</code>, до 200 МБ</span></div>
+        <div><span>Время ответа</span><span>обычно 30–120 с, внутренний предел 4 минуты; при нехватке времени отдаётся лучший частичный результат</span></div>
+        <div><span>Интерфейс</span><span><a href="index.html">${host}/ui/</a> — тот же ключ</span></div>
+      </div>
+      <h2><span class="m post">POST</span><code>/api/v1/analyze</code></h2>
+      <p>Принимает видео и сразу возвращает <code class="i">job_id</code>. Обработка идёт в фоне.</p>
+      <h2><span class="m get">GET</span><code>/api/v1/jobs/{job_id}</code></h2>
+      <table class="tbl2"><thead><tr><th>status</th><th>Что значит</th></tr></thead><tbody>
+        <tr><td>processing</td><td>Видео в очереди или анализируется. Повторите запрос через 3–5 секунд.</td></tr>
+        <tr><td>done</td><td>Готово: <code class="i">verdict</code> и список <code class="i">violations</code>.</td></tr>
+        <tr><td>failed</td><td>Файл не читается как видео. Поле <code class="i">error</code> объясняет причину. Это не означает отсутствия нарушений.</td></tr>
+      </tbody></table>
+      <h2>Формат ответа</h2>
+      <table class="tbl2"><thead><tr><th>Поле</th><th>Описание</th></tr></thead><tbody>
+        <tr><td>verdict</td><td><code class="i">violation</code> или <code class="i">no_violation</code></td></tr>
+        <tr><td>violations[].type</td><td>Тип нарушения из каталога (17 типов)</td></tr>
+        <tr><td>violations[].timecode_sec</td><td>Секунда от начала видео</td></tr>
+        <tr><td>violations[].description</td><td>Что видно, почему это может быть нарушением, строка «Основание: …» с пунктом норматива и ссылкой на adilet.zan.kz</td></tr>
+        <tr><td>violations[].evidence_frames</td><td>1–3 кадра JPEG в base64 без пометок: в момент события, за 1 с до и через 1 с после</td></tr>
+      </tbody></table>
+      <h2>Служебное</h2>
+      <table class="tbl2"><tbody>
+        <tr><td>GET /health</td><td>состояние сервиса и длина очереди, без ключа</td></tr>
+        <tr><td>GET /api/v1/jobs</td><td>список задач</td></tr>
+        <tr><td>GET /api/v1/jobs/{id}/progress</td><td>ход анализа и подробности для интерфейса (сигналы, рамки, норма)</td></tr>
+        <tr><td>GET /api/docs</td><td>интерактивная документация OpenAPI</td></tr>
+      </tbody></table>
+    </main>
+    <aside>
+      <div class="cb"><div class="cbh"><span>1. Отправить видео</span></div><pre>API=${host}
+<span class="k">curl</span> -X POST $API/api/v1/analyze \\
+  -H <span class="s">"X-API-Key: ••••••••"</span> \\
+  -F <span class="s">"file=@video_017.mov"</span>
+
+<span class="c"># ответ</span>
+{ <span class="s">"job_id"</span>: <span class="s">"3f2a9c1e"</span>, <span class="s">"status"</span>: <span class="s">"processing"</span> }</pre></div>
+      <div class="cb"><div class="cbh"><span>2. Забрать результат</span></div><pre><span class="k">curl</span> $API/api/v1/jobs/3f2a9c1e \\
+  -H <span class="s">"X-API-Key: ••••••••"</span>
+
+<span class="c"># ответ (сокращён)</span>
+{
+  <span class="s">"job_id"</span>: <span class="s">"3f2a9c1e"</span>,
+  <span class="s">"status"</span>: <span class="s">"done"</span>,
+  <span class="s">"verdict"</span>: <span class="s">"violation"</span>,
+  <span class="s">"violations"</span>: [{
+    <span class="s">"type"</span>: <span class="s">"Наличные оставлены без присмотра"</span>,
+    <span class="s">"timecode_sec"</span>: <span class="n">10.0</span>,
+    <span class="s">"description"</span>: <span class="s">"Кассир отходит от рабочего места… Основание: Правила № 231, п. 20, ч. 2 (https://adilet.zan.kz/…)"</span>,
+    <span class="s">"evidence_frames"</span>: [
+      { <span class="s">"timestamp_sec"</span>: <span class="n">10.0</span>, <span class="s">"image_base64"</span>: <span class="s">"/9j/4AAQ…"</span> }
+    ]
+  }]
+}</pre></div>
+      <div class="note">Кадры, тексты и ссылки на нормы формирует сервис на своём сервере. Внешние AI-сервисы не вызываются; лица не распознаются; видео удаляется после анализа.</div>
+    </aside></div></div></div>`;
+  KK.api("/health").then(h => { document.getElementById("svc").innerHTML = `<span class="dotok"></span>Сервис работает · очередь ${h.queue} · v${h.version}`; }).catch(() => {});
+})();
+</script>
+</body>
+</html>

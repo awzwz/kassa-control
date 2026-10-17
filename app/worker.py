@@ -46,15 +46,18 @@ def _details(partial: pipeline.Partial, info, elapsed: float) -> dict[str, Any]:
     return {
         "pipeline_version": config.PIPELINE_VERSION,
         "duration_sec": round(info.duration, 2),
-        "width": info.width, "height": info.height, "fps": round(info.fps, 2), "codec": info.codec,
+        "width": info.width, "height": info.height, "fps_src": round(info.fps, 2), "codec": info.codec,
         "elapsed_sec": round(elapsed, 1),
         "timed_out": partial.timed_out,
+        "mode": partial.mode, "fps": partial.fps,
         "frames_total": partial.frames_total,
+        "scene": partial.scene, "timeline": partial.timeline, "strip": partial.strip,
         "checked": partial.checked,
         "notes": partial.notes,
         "findings": [
-            {"type": f.type, "timecode_sec": f.timecode_sec, "confidence": f.ui_confidence,
-             "rule": f.ui_rule, "signals": f.ui_signals, "boxes": f.ui_boxes}
+            {"type": f.type, "type_id": f.ui_type_id, "timecode_sec": f.timecode_sec, "t_end": f.ui_t_end,
+             "confidence": f.ui_confidence, "rule": f.ui_rule, "signals": f.ui_signals, "boxes": f.ui_boxes,
+             "description": f.description, "frame_times": [t for t, _ in f.frames_b64]}
             for f in partial.findings
         ],
     }
@@ -82,7 +85,7 @@ def process(job: dict[str, Any]) -> None:
 
     def run() -> None:
         try:
-            pipeline.analyze(path, info, partial, deadline, on_progress)
+            pipeline.analyze(path, info, partial, deadline, on_progress, queue_depth=max(0, store.queue_size() - 1))
         except BaseException as e:  # noqa: BLE001 — любая ошибка конвейера не должна ронять обработчик
             error.append(e)
 

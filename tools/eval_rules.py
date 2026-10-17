@@ -36,7 +36,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--only", nargs="*")
     ap.add_argument("-v", action="store_true")
+    ap.add_argument("--det", help="папка с детекциями (по умолчанию out/detections)")
     a = ap.parse_args()
+    global DET
+    if a.det:
+        DET = Path(a.det)
     labels = {r["file"]: r for r in csv.DictReader((ROOT / "data" / "labels_verified.csv").open(encoding="utf-8"))}
     tp = fp = fn = tn = 0
     type_ok = type_total = 0

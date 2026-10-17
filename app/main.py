@@ -12,7 +12,8 @@ import time
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, UploadFile
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 from . import config, store
 from .pipeline.video import NotAVideo, probe
@@ -30,6 +31,15 @@ app = FastAPI(title="КассаКонтроль", version=config.PIPELINE_VERSIO
 def _startup() -> None:
     logging.basicConfig(level=logging.INFO)
     store.init()
+
+
+# Интерфейс: статические страницы, данные берут из API с тем же ключом.
+app.mount("/ui", StaticFiles(directory=str(Path(__file__).parent / "static"), html=True), name="ui")
+
+
+@app.get("/", include_in_schema=False)
+def root_redirect() -> RedirectResponse:
+    return RedirectResponse("/ui/index.html")
 
 
 def require_key(x_api_key: str | None = Header(default=None)) -> None:
