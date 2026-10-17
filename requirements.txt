@@ -3,5 +3,10 @@ uvicorn[standard]>=0.30
 python-multipart>=0.0.9
 pydantic>=2.7
 numpy>=1.26
+onnxruntime>=1.19
+onnx>=1.16
+opencv-python-headless>=4.10
+supervision>=0.25
+trackers>=2.0
 # инструменты (симулятор жюри)
 requests>=2.32

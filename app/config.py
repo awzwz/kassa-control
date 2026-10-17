@@ -26,4 +26,4 @@ RESULT_TTL_HOURS = _int("RESULT_TTL_HOURS", 24)
 # Как часто обработчик заглядывает в очередь.
 WORKER_POLL_SEC = float(os.environ.get("WORKER_POLL_SEC", "0.5"))
 
-PIPELINE_VERSION = "0.1-stub"
+PIPELINE_VERSION = "0.2"
