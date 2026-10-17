@@ -13,7 +13,7 @@ services:
 
   api:
     build: .
-    image: kassa-kontrol:latest
+    image: kassa-control:latest
     restart: unless-stopped
     env_file: .env
     environment:
@@ -28,7 +28,7 @@ services:
       retries: 3
 
   worker:
-    image: kassa-kontrol:latest
+    image: kassa-control:latest
     restart: unless-stopped
     env_file: .env
     environment:
