@@ -74,7 +74,7 @@ def process(job: dict[str, Any]) -> None:
         info = probe(path)
     except NotAVideo as e:
         log.warning("%s: файл не читается: %s", job_id, e)
-        store.fail_job(job_id, f"Файл не является видео или повреждён: {e}")
+        store.fail_job(job_id, f"Файл не является видео или повреждён: {str(e).replace(str(path), 'файл')}")
         _cleanup(path)
         return
 

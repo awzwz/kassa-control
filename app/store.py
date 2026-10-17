@@ -131,6 +131,16 @@ def queue_size() -> int:
         return c.execute("SELECT COUNT(*) FROM jobs WHERE status IN ('queued','processing')").fetchone()[0]
 
 
+def queue_ahead(job_id: str) -> int:
+    """Сколько задач стоят в очереди раньше этой (для страницы ожидания)."""
+    with _conn() as c:
+        return c.execute(
+            "SELECT COUNT(*) FROM jobs WHERE status IN ('queued','processing') "
+            "AND created_at < (SELECT created_at FROM jobs WHERE id=?)",
+            (job_id,),
+        ).fetchone()[0]
+
+
 def requeue_stale(max_age_sec: float) -> int:
     """После перезапуска: задачи, зависшие в processing, возвращаем в очередь (один раз)."""
     cutoff = time.time() - max_age_sec

@@ -17,6 +17,9 @@
   const dt = ts => ts ? new Date(ts * 1000).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—";
   const dur = s => s < 60 ? `${Math.round(s)} с` : `${Math.floor(s / 60)} мин ${String(Math.round(s % 60)).padStart(2, "0")} с`;
   const pct = (t, d) => (100 * t / Math.max(d, 0.01)).toFixed(2) + "%";
+  const codecName = c => ({ h264: "H.264", hevc: "H.265 (HEVC)", mpeg4: "MPEG-4", vp9: "VP9", av1: "AV1", prores: "ProRes", mjpeg: "MJPEG" }[String(c || "").toLowerCase()] || String(c || "").toUpperCase());
+  const RU_OBJ = { laptop: "ноутбук", tv: "монитор", chair: "стул", "dining table": "стол", keyboard: "клавиатура", mouse: "мышь", "cell phone": "телефон", book: "пачка банкнот/документы", cup: "чашка", bottle: "бутылка", bowl: "миска", handbag: "сумка", backpack: "рюкзак", remote: "пульт", person: "человек", clock: "часы", "potted plant": "растение", couch: "диван", bench: "скамья", suitcase: "чемодан", vase: "ваза" };
+  const ruObj = k => RU_OBJ[k] || k;
 
   const I = {
     mark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="6" width="17" height="12" rx="2"/><circle cx="12" cy="12" r="2.4"/></svg>',
@@ -94,14 +97,16 @@
   function showKeyForm() {
     document.getElementById("root").innerHTML = `<div style="max-width:420px;margin:80px auto;padding:24px;border:1px solid var(--line);border-radius:12px;background:var(--bg)">
       <div class="sbrand" style="padding:0;margin-bottom:12px"><span class="mark">${I.mark}</span>КассаКонтроль</div>
-      <b>Введите ключ доступа</b><div style="color:var(--text2);font-size:13px;margin:4px 0 12px">Тот же ключ, что в заголовке X-API-Key для API. Он сохранится в этом браузере.</div>
+      <b>${KEY() ? "Ключ не подошёл — введите заново" : "Введите ключ доступа"}</b><div style="color:var(--text2);font-size:13px;margin:4px 0 12px">Тот же ключ, что в заголовке X-API-Key для API. Он сохранится в этом браузере.</div>
       <input id="keyIn" type="password" style="width:100%;height:36px;border:1px solid var(--line2);border-radius:8px;padding:0 10px;font:inherit;background:var(--bg);color:var(--text)">
       <div style="margin-top:12px"><span class="btn dark" id="keyOk">Войти</span></div></div>`;
     document.getElementById("keyOk").onclick = () => { try { localStorage.setItem("kk_key", document.getElementById("keyIn").value.trim()); } catch (e) {} location.reload(); };
+    document.getElementById("keyIn").onkeydown = e => { if (e.key === "Enter") document.getElementById("keyOk").click(); };
+    document.getElementById("keyIn").focus();
   }
   function bindCommon(root) {
     const b = root.querySelector("#themeBtn");
-    if (b) b.onclick = () => { try { localStorage.setItem("kk_theme", theme === "dark" ? "light" : "dark"); } catch (e) {} location.reload(); };
+    if (b) b.onclick = () => { theme = theme === "dark" ? "light" : "dark"; try { localStorage.setItem("kk_theme", theme); } catch (e) {} if (theme === "dark") document.documentElement.setAttribute("data-theme", "dark"); else document.documentElement.removeAttribute("data-theme"); b.innerHTML = (theme === "dark" ? I.sun : I.moon) + (b.classList.contains("ritem") ? "Тема" : ""); };
   }
   async function fillRecent() {
     const el = document.getElementById("recent");
@@ -140,7 +145,7 @@
         <div class="drop" id="drop"><div id="err"></div>
           <div class="dr1"><span class="dic">${I.up}</span><div><b>Перетащите видеозапись кассы сюда</b><span>.mov или .mp4 · до 200 МБ · звук не нужен · любой ракурс камеры · анализ 1–3 мин</span></div><span class="btn dark" id="pick2">Выбрать файл</span><input type="file" id="file" accept="video/*,.mov,.mp4" style="display:none"></div>
           <div class="steps5">${[["Загрузка", "видео остаётся на нашем сервере"], ["Кадры", "5 кадров в секунду"], ["Люди и предметы", "кассир, клиент, наличные, экран"], ["Правила", "по моментам: уход, вход, рабочее место"], ["Заключение", "кадры, норма, PDF и API"]].map(([a, b], i) => `<div><span class="n">${i + 1}</span><b>${a}</b>${b}</div>`).join("")}</div></div>
-        <div class="chips" id="chips"><span class="chip on" data-g="all">Все <span class="c">${jobs.length}</span></span><span class="chip" data-g="i">${sh("i")}Готово <span class="c">${jobs.filter(j => j.status === "done").length}</span></span><span class="chip" data-g="p">${sh("p")}В обработке <span class="c">${jobs.filter(j => j.status === "processing" || j.status === "queued").length}</span></span><span class="chip" data-g="x">${sh("x")}Ошибки <span class="c">${jobs.filter(j => j.status === "failed").length}</span></span></div>
+        <div class="chips" id="chips"><span class="chip on" data-g="all">Все <span class="c">${jobs.length}</span></span><span class="chip" data-g="d">${sh("d")}С событиями <span class="c">0</span></span><span class="chip" data-g="i">${sh("i")}Без нарушений <span class="c">${jobs.filter(j => j.status === "done").length}</span></span><span class="chip" data-g="p">${sh("p")}В обработке <span class="c">${jobs.filter(j => j.status === "processing" || j.status === "queued").length}</span></span><span class="chip" data-g="x">${sh("x")}Ошибки <span class="c">${jobs.filter(j => j.status === "failed").length}</span></span></div>
         <div class="tbl"><table><thead><tr><th>Файл</th><th>Размер</th><th>Загружен</th><th>Статус</th><th>Результат</th><th>Решения</th></tr></thead><tbody id="tb">${rows || `<tr><td colspan="6" style="color:var(--label);text-align:center;padding:24px">Проверок пока нет. Загрузите первое видео.</td></tr>`}</tbody></table></div>
       </div>
       <aside class="catp" id="catp"><div class="hd"><b>Что проверяет система</b><span>7 категорий и основание для каждой</span></div><div id="cats"></div>
@@ -152,12 +157,13 @@
       const byId = Object.fromEntries(cat.types.map(t => [t.id, t]));
       document.getElementById("cats").innerHTML = cat.categories.map((c, i) => { const t = byId[c.types[0]]; const d = cat.documents[t.source.doc]; return `<div class="ci"><span class="n">0${i + 1}</span><div><b>${esc(c.name)}</b><div class="ref">${esc(d.short)} · ${esc(t.source.point)}</div></div></div>`; }).join("");
     }).catch(() => {});
-    // число событий и решений для готовых
+    // число событий и решений для готовых; счётчики чипов пересчитываются по мере ответов
+    const recount = () => { const trs = [...root.querySelectorAll("#tb tr[data-id]")]; root.querySelectorAll("#chips .chip").forEach(c => { const g = c.dataset.g, el = c.querySelector(".c"); if (el) el.textContent = g === "all" ? trs.length : trs.filter(tr => tr.dataset.g === g).length; }); const on = root.querySelector("#chips .chip.on"); if (on && on.dataset.g !== "all") trs.forEach(tr => { tr.style.display = tr.dataset.g === on.dataset.g ? "" : "none"; }); };
     for (const j of jobs.filter(j => j.status === "done").slice(0, 30)) {
       api(`/api/v1/jobs/${j.id}/progress`).then(p => {
         const d = p.details || {}; const n = (d.findings || []).length; const tr = root.querySelector(`tr[data-id="${j.id}"]`); if (!tr) return;
         tr.querySelector(".st").innerHTML = n ? `<span class="tag d">${sh("d")}${n} ${n === 1 ? "событие" : n < 5 ? "события" : "событий"}</span>` : `<span class="tag i">${sh("i")}Не обнаружено</span>`;
-        tr.dataset.g = n ? "d" : "i";
+        tr.dataset.g = n ? "d" : "i"; recount();
         tr.querySelector(".out").innerHTML = n ? (d.findings || []).slice(0, 2).map(f => `<div><span class="mono">${fmt(f.timecode_sec)}</span>${esc(f.type)}</div>`).join("") : `<span style="color:var(--label)">Проверено 7 категорий</span>`;
         const made = Object.keys(dec(j.id)).length; tr.querySelector(".dec").innerHTML = n ? `<span class="tag n">${made} из ${n}</span>` : "—";
       }).catch(() => {});
@@ -192,7 +198,7 @@
     let timer = null;
     async function tick() {
       let p;
-      try { p = await api(`/api/v1/jobs/${id}/progress`); } catch (e) { root.innerHTML = `<div style="padding:40px">Задача не найдена: ${esc(e.message)}</div>`; return; }
+      try { p = await api(`/api/v1/jobs/${id}/progress`); } catch (e) { if (/ключ/.test(e.message)) return; frame(`<h1 class="doc-h1">Проверка не найдена</h1><p class="doc-lead">Задачи с номером <code class="doc-code">${esc(id)}</code> нет: ссылка неверна или результат уже удалён (результаты хранятся 24 часа).</p><p style="color:var(--label);font-size:12.5px">Ответ сервера: ${esc(e.message)}</p><div><a class="btn dark" href="index.html">К списку проверок</a></div>`, { active: "list", crumbs: `<a href="index.html">Проверки</a><span class="sep">/</span><b>${esc(id)}</b>`, st: ["Задача не найдена"] }); return; }
       if (p.status === "processing") { renderProcessing(p); timer = setTimeout(tick, 2000); return; }
       if (p.status === "failed") { renderFailed(p); return; }
       const res = await api(`/api/v1/jobs/${id}`);
@@ -201,34 +207,37 @@
     tick();
 
     function renderProcessing(p) {
-      const pr = p.progress || { stage: 1, stages: 5, label: "Видео загружено", frames_done: 0, frames_total: 1, elapsed_sec: 0 };
+      const queued = !p.progress, ahead = p.queue_ahead || 0;
+      const pr = p.progress || { stage: 1, stages: 5, label: "Видео в очереди", frames_done: 0, frames_total: 1, elapsed_sec: Math.max(0, Date.now() / 1000 - (p.created_at || Date.now() / 1000)) };
       const pc = Math.round(100 * pr.frames_done / Math.max(1, pr.frames_total));
       const stg = (n, name, d, k, tm, extra) => `<div class="stg ${k}"><span class="ic">${k === "done" ? I.ok : ""}</span><div><div class="eyebrow">Этап 0${n}</div><b>${name}</b><div class="d">${d}</div>${extra || ""}</div><span class="tm">${tm}</span></div>`;
       const names = [["Видео загружено", mb(p.size_bytes)], ["Файл проверен", "формат, длительность, поворот"], ["Люди и предметы в кадре", "5 кадров в секунду: кассир, клиент, наличные, экран"], ["Сопоставление с правилами", "7 категорий · каталог правил от 17.10.2026"], ["Кадры-доказательства и заключение", "1–3 кадра на событие, PDF и ответ API"]];
-      const main = head({ title: p.filename, tag: `<span class="tag p">${sh("p")}Анализ · этап ${pr.stage} из ${pr.stages}</span>`, disc: "Можно закрыть страницу: результат останется по этой ссылке.", acts: `<a class="btn dark" href="index.html#upload">${I.up}Новая проверка</a>`,
-        metas: [["Размер", mb(p.size_bytes)], ["Загружено", dt(p.created_at)], ["Прошло", dur(pr.elapsed_sec)], ["Готово", `${pc} % · кадр ${pr.frames_done} из ${pr.frames_total}`], ["Предел", "4 мин на видео"]], prog: Math.max(2, pc),
+      const main = head({ title: p.filename, tag: `<span class="tag p">${sh("p")}${queued ? "В очереди" : `Анализ · этап ${pr.stage} из ${pr.stages}`}</span>`, disc: "Можно закрыть страницу: результат останется по этой ссылке.", acts: `<a class="btn dark" href="index.html#upload">${I.up}Новая проверка</a>`,
+        metas: [["Размер", mb(p.size_bytes)], ["Загружено", dt(p.created_at)], ["Прошло", dur(pr.elapsed_sec)], ["Готово", queued ? (ahead ? `в очереди · впереди ${ahead}` : "в очереди") : `${pc} % · кадр ${pr.frames_done} из ${pr.frames_total}`], ["Предел", "4 мин на видео"]], prog: Math.max(2, pc),
         tabs: `<a class="on">${I.film}События <span class="c">…</span></a><a>${I.task}Категории <span class="c">7</span></a><a>${I.log}Журнал анализа</a><a>${I.code}Ответ API</a>` })
         + `<div class="body" style="flex:1"><section class="left"><div class="card view"><div class="evid"><div class="evh"><b>Найденные события</b><span class="tag n" style="margin-left:auto">появятся после этапа 4</span></div>
-          <div class="pend"><b>Система просматривает видео</b><span>${esc(pr.label)}: кадр ${pr.frames_done} из ${pr.frames_total}.<br>Обычно анализ занимает 1–3 минуты.</span><div class="skel" style="width:100%;max-width:420px"><i style="width:70%"></i><i style="width:92%"></i><i style="width:55%"></i></div></div></div></div></section>
+          <div class="pend"><b>Система просматривает видео</b><span>${queued ? (ahead ? `Видео в очереди: перед ним ещё ${ahead}. Обработка начнётся автоматически.` : "Видео в очереди, обработчик вот-вот начнёт.") : `${esc(pr.label)}: кадр ${pr.frames_done} из ${pr.frames_total}.`}<br>Обычно анализ занимает 1–3 минуты.</span><div class="skel" style="width:100%;max-width:420px"><i style="width:70%"></i><i style="width:92%"></i><i style="width:55%"></i></div></div></div></div></section>
         <aside class="rp"><div class="rph lab" style="grid-template-columns:1fr auto"><span>Ход анализа</span><span>Этап</span></div><div class="rpl"><div class="stages">
           ${names.map(([n, d], i) => stg(i + 1, n, d, i + 1 < pr.stage ? "done" : i + 1 === pr.stage ? "now" : "wait", i + 1 < pr.stage ? "✓" : i + 1 === pr.stage ? "…" : "—", i + 1 === pr.stage && pr.stage === 3 ? `<div class="mbar"><i style="width:${pc}%"></i></div><div class="d mono" style="font-size:11.5px;margin-top:5px">кадр ${pr.frames_done} / ${pr.frames_total}</div>` : "")).join("")}</div>
           <div class="linkbox">Результат будет доступен по ссылке:<div class="u">${location.host}/ui/job.html?id=${id}${I.copy}</div></div>
           <div class="note" style="padding:12px 16px">Если анализ не уложится в предел, сервис отдаст лучший частичный результат, а не «нарушений нет».</div></div></aside></div>`;
-      root.innerHTML = shell({ rail: true, fixed: true, active: "list", crumbs: `<a href="index.html">Проверки</a><span class="sep">/</span><b>${esc(p.filename)}</b><span class="idchip">${id}</span>`, main, st: ["Анализ идёт", `задача ${id}`, `кадр ${pr.frames_done} / ${pr.frames_total}`] });
+      root.innerHTML = shell({ rail: true, fixed: true, active: "list", crumbs: `<a href="index.html">Проверки</a><span class="sep">/</span><b>${esc(p.filename)}</b><span class="idchip">${id}</span>`, main, st: [queued ? "В очереди" : "Анализ идёт", `задача ${id}`, queued ? `впереди ${ahead}` : `кадр ${pr.frames_done} / ${pr.frames_total}`] });
+      const u = root.querySelector(".linkbox .u");
+      if (u) { u.style.cursor = "pointer"; u.title = "Скопировать ссылку"; u.onclick = () => { const link = location.origin + "/ui/job.html?id=" + id; const done = () => { u.firstChild.textContent = "Ссылка скопирована"; setTimeout(() => { u.firstChild.textContent = location.host + "/ui/job.html?id=" + id; }, 1500); }; if (navigator.clipboard) navigator.clipboard.writeText(link).then(done, () => {}); }; }
       bindCommon(root);
     }
     function renderFailed(p) {
       const main = head({ title: p.filename, tag: `<span class="tag d">${sh("x")}Не обработано</span>`, disc: "Это не означает отсутствия нарушений: файл не удалось проанализировать.", acts: `<a class="btn dark" href="index.html#upload">${I.up}Загрузить другое видео</a>`, metas: [["Размер", mb(p.size_bytes)], ["Загружено", dt(p.created_at)]] })
-        + `<div class="page"><div class="errb">${I.warn}<div><b>${esc((p.details && p.details.error) || "Файл не является видео или повреждён")}</b><span>Нужна запись .mov или .mp4. Если снимали на телефон, отправьте её как файл, а не как фото.</span></div></div></div>`;
+        + `<div class="page"><div class="errb">${I.warn}<div><b>${esc(p.error || "Файл не является видео или повреждён")}</b><span>Нужна запись .mov или .mp4. Если снимали на телефон, отправьте её как файл, а не как фото.</span></div></div></div>`;
       root.innerHTML = shell({ active: "list", crumbs: `<a href="index.html">Проверки</a><span class="sep">/</span><b>${esc(p.filename)}</b>`, main, st: ["Ошибка файла", `задача ${id}`] });
-      bindCommon(root);
+      bindCommon(root); fillRecent();
     }
 
     function renderResult(p, res) {
       const d = p.details || {}; const fs = d.findings || []; const W = d.width || 464, Hh = d.height || 848;
       const decKey = "kk_dec_" + id; let decisions = {}; try { decisions = JSON.parse(localStorage.getItem(decKey) || "{}"); } catch (e) {}
       let sel = +(qs.get("ev") || 0); if (sel >= fs.length) sel = 0;
-      let tab = "events";
+      let tab = "events", flt = "all";
       const framesOf = i => (res.violations[i] || {}).evidence_frames || [];
       const low = f => f.confidence === "низкая";
       const groups = { d: fs.map((f, i) => [f, i]).filter(([f]) => !low(f)), w: fs.map((f, i) => [f, i]).filter(([f]) => low(f)) };
@@ -296,7 +305,7 @@
         if (tab === "log") {
           const sc = d.scene || {};
           return `<div class="rph lab" style="grid-template-columns:1fr"><span>Журнал анализа</span></div><div class="rpl"><div class="stages">
-            ${[["Режим", `${esc(d.mode || "полный")} · ${d.fps || 5} к/с · ${d.frames_total} кадров`], ["Время анализа", dur(d.elapsed_sec || 0) + (d.timed_out ? " · предел исчерпан, частичный результат" : "")], ["Видео", `${fmt(d.duration_sec)} · ${d.width}×${d.height} · ${d.fps_src || ""} ${esc(d.codec || "")}`], ["Кассир", sc.cashier_track != null ? `трек ${sc.cashier_track}, рост сидя ${sc.h_seated} px, стоя ${sc.h_stand} px` : "не найден"], ["Люди в кадре", (sc.tracks || []).map(t => `${t.role} ${fmt(t.t0)}–${fmt(t.t1)}`).join("; ") || "—"], ["Опорные предметы", Object.keys(sc.anchors || {}).join(", ") || "—"], ["Заметки", (d.notes || []).join(" ") || "—"], ["Модель", `YOLOX-s (ONNX, Apache-2.0) + ByteTrack · конвейер v${esc(d.pipeline_version)}`]].map(([l, v]) => `<div class="fld"><div class="lab">${l}</div><p style="font-size:13px">${v}</p></div>`).join("")}</div></div>`;
+            ${[["Режим", `${esc(d.mode || "полный")} · ${d.fps || 5} к/с · ${d.frames_total} кадров`], ["Время анализа", dur(d.elapsed_sec || 0) + (d.timed_out ? " · предел исчерпан, частичный результат" : "")], ["Видео", [fmt(d.duration_sec), `${d.width}×${d.height}`, d.fps_src ? `${Math.round(d.fps_src)} к/с` : "", esc(codecName(d.codec))].filter(Boolean).join(" · ")], ["Кассир", sc.cashier_track != null ? `трек ${sc.cashier_track}, рост сидя ${sc.h_seated} px, стоя ${sc.h_stand} px` : "не найден"], ["Люди в кадре", (sc.tracks || []).map(t => `${t.role} ${fmt(t.t0)}–${fmt(t.t1)}`).join("; ") || "—"], ["Опорные предметы", Object.keys(sc.anchors || {}).map(ruObj).join(", ") || "—"], ["Заметки", (d.notes || []).join(" ") || "—"], ["Модель", `YOLOX-s (ONNX, Apache-2.0) + ByteTrack · конвейер v${esc(d.pipeline_version)}`]].map(([l, v]) => `<div class="fld"><div class="lab">${l}</div><p style="font-size:13px">${v}</p></div>`).join("")}</div></div>`;
         }
         if (tab === "api") {
           const short = JSON.parse(JSON.stringify(res)); (short.violations || []).forEach(v => v.evidence_frames.forEach(f => { f.image_base64 = f.image_base64.slice(0, 24) + "… (" + Math.round(f.image_base64.length * 3 / 4 / 1024) + " КБ)"; }));
@@ -305,8 +314,9 @@
         }
         const grp = (k, title, arr) => arr.length ? `<div class="grp">${sh(k)}${title} <span class="c">${arr.length}</span></div>${arr.map(([f, i]) => evRow(f, i)).join("")}` : "";
         const nd = (d.checked || []).filter(c => c.result !== "found");
+        const vis = ([f, i]) => flt === "all" || (flt === "d" && !low(f)) || (flt === "w" && low(f)) || (flt === "n" && !decisions[i]);
         return `<div class="rph lab"><span>Время</span><span>Событие · основание</span><span style="text-align:right">Решение</span></div><div class="rpl">
-          ${grp("d", "Нарушения", groups.d)}${grp("w", "Требуют проверки", groups.w)}
+          ${grp("d", "Нарушения", groups.d.filter(vis))}${grp("w", "Требуют проверки", groups.w.filter(vis))}${groups.d.filter(vis).length + groups.w.filter(vis).length ? "" : `<div class="cat" style="color:var(--label);border:0">Событий по выбранному фильтру нет</div>`}
           <div class="grp">${sh("ok")}Остальные категории <span class="c">${nd.length}</span></div>
           ${nd.map(c => `<div class="cat">${c.result === "not_checked" ? sh("n") : sh("ok")}${esc(c.category)}<span class="mono">${c.result === "not_checked" ? "не проверялось" : c.result === "not_applicable" ? "не применимо" : "не обнаружено"}</span></div>`).join("")}</div>`;
       }
@@ -315,15 +325,16 @@
         const tag = n ? `<span class="tag d">${sh("d")}Найдены признаки нарушений · ${n}</span>` : `<span class="tag i">${sh("i")}Нарушение не обнаружено</span>`;
         const disc = n ? "Это подсказка, а не вывод о нарушении — решение принимает проверяющий." : `Проверено ${fmt(d.duration_sec)} видео по 7 категориям. Это не гарантирует отсутствия нарушений — при необходимости просмотрите запись.`;
         const main = head({ title: p.filename, tag, disc, acts: `<a class="btn" href="report.html?id=${id}">${I.dl}Заключение PDF</a><a class="btn" id="dlJson2">JSON</a><a class="btn dark" href="index.html#upload">${I.up}Новая проверка</a>`,
-          metas: [["Длительность", `${fmt(d.duration_sec)} <span style="color:var(--label)">(${(d.duration_sec || 0).toFixed(1).replace(".", ",")} с)</span>`], ["Формат", `${d.width}×${d.height} · ${Math.round(d.fps_src || 0) || ""} к/с · ${esc(d.codec || "")}`], ["Загружено", dt(p.created_at)], ["Анализ", dur(d.elapsed_sec || 0)], ["Модель", `<span class="mono" style="font-size:12.5px">v${esc(d.pipeline_version)} · правила 17.10.2026</span>`]],
+          metas: [["Длительность", `${fmt(d.duration_sec)} <span style="color:var(--label)">(${(d.duration_sec || 0).toFixed(1).replace(".", ",")} с)</span>`], ["Формат", [`${d.width}×${d.height}`, d.fps_src ? `${Math.round(d.fps_src)} к/с` : "", esc(codecName(d.codec))].filter(Boolean).join(" · ")], ["Загружено", dt(p.created_at)], ["Анализ", dur(d.elapsed_sec || 0)], ["Модель", `<span class="mono" style="font-size:12.5px">v${esc(d.pipeline_version)} · правила 17.10.2026</span>`]],
           ring: n ? ring(made, n, "Решения") : "",
           tabs: [["events", I.film, "События", n], ["categories", I.task, "Категории", 7], ["log", I.log, "Журнал анализа", ""], ["api", I.code, "Ответ API", ""]].map(([k, ic, t, c]) => `<a class="${tab === k ? "on" : ""}" data-tab="${k}" style="cursor:pointer">${ic}${t} ${c !== "" ? `<span class="c">${c}</span>` : ""}</a>`).join("") })
-          + (n ? `<div class="bar"><span class="chip on">Все события <span class="c">${n}</span></span><span class="chip">${sh("d")}Нарушения <span class="c">${groups.d.length}</span></span><span class="chip">${sh("w")}Требуют проверки <span class="c">${groups.w.length}</span></span><span class="chip">${sh("n")}Без решения <span class="c">${n - made}</span></span></div>` : "")
+          + (n && tab === "events" ? `<div class="bar">${[["all", "", "Все события", n], ["d", sh("d"), "Нарушения", groups.d.length], ["w", sh("w"), "Требуют проверки", groups.w.length], ["n", sh("n"), "Без решения", n - made]].map(([k, ic, t, c]) => `<span class="chip ${flt === k ? "on" : ""}" data-f="${k}" style="cursor:pointer">${ic}${t} <span class="c">${c}</span></span>`).join("")}</div>` : "")
           + `<div class="body" style="flex:1"><section class="left">${leftHtml()}</section><aside class="rp">${rightHtml()}</aside></div>`;
         root.innerHTML = shell({ rail: true, fixed: true, active: "list", crumbs: `<a href="index.html">Проверки</a><span class="sep">/</span><b>${esc(p.filename)}</b><span class="idchip">${id}</span>`, main,
           st: [`Анализ завершён ${dt(p.created_at + (d.elapsed_sec || 0))}`, `задача ${id}`, `${d.frames_total} кадров · ${d.fps || 5} к/с`, `модель v${esc(d.pipeline_version)}`, "каталог правил 17.10.2026"], str: [`Событий: <b>${n}</b>`, `Решений: <b>${made} из ${n}</b>`, `режим ${esc(d.mode || "полный")}`] });
         bindCommon(root);
         root.querySelectorAll("[data-tab]").forEach(a => a.onclick = () => { tab = a.dataset.tab; render(); });
+        root.querySelectorAll("[data-f]").forEach(c => c.onclick = () => { flt = c.dataset.f; render(); });
         root.querySelectorAll(".row[data-i]").forEach(r => r.onclick = e => { if (e.target.closest("[data-dec]") || e.target.closest("a")) return; sel = +r.dataset.i; tab = "events"; render(); });
         root.querySelectorAll("[data-dec]").forEach(b => b.onclick = () => { decisions[b.dataset.i] = b.dataset.dec; try { localStorage.setItem(decKey, JSON.stringify(decisions)); } catch (e) {} render(); });
         root.querySelectorAll(".pin[data-i]").forEach(pn => pn.onclick = () => { sel = +pn.dataset.i; render(); });
@@ -348,7 +359,7 @@
     const low = f => f.confidence === "низкая";
     const hdr = (n, tot) => `<div class="hdr"><span class="mark">${I.mark}</span><b>КассаКонтроль</b><span class="g">Заключение по видеозаписи</span><span class="r"><span>№ ${id.toUpperCase()}</span><span>Стр. ${n} / ${tot}</span></span></div>`;
     const ftr = `<div class="ftr"><span>Сформировано автоматически системой анализа видео КассаКонтроль v${esc(d.pipeline_version)}, ${dt(p.created_at + (d.elapsed_sec || 0))}.<br>Вспомогательный материал для проверки; не является заключением о дисциплинарном проступке или правонарушении.</span><span class="mono">${id}</span></div>`;
-    const meta = `<div class="meta c4">${[["Файл", `${esc(p.filename)} · ${mb(p.size_bytes)}`], ["Длительность", `${fmt(d.duration_sec)} (${(d.duration_sec || 0).toFixed(1).replace(".", ",")} с)`], ["Формат", `${d.width}×${d.height} · ${Math.round(d.fps_src || 0) || ""} к/с`], ["Задача", id, 1], ["Дата анализа", dt(p.created_at + (d.elapsed_sec || 0))], ["Время анализа", dur(d.elapsed_sec || 0)], ["Модель", `v${esc(d.pipeline_version)} · YOLOX-s`, 1], ["Каталог правил", "от 17.10.2026", 1]].map(([l, v, m]) => `<div><div class="lab">${l}</div><div class="v ${m ? "mono" : ""} num">${v}</div></div>`).join("")}</div>`;
+    const meta = `<div class="meta c4">${[["Файл", `${esc(p.filename)} · ${mb(p.size_bytes)}`], ["Длительность", `${fmt(d.duration_sec)} (${(d.duration_sec || 0).toFixed(1).replace(".", ",")} с)`], ["Формат", [`${d.width}×${d.height}`, d.fps_src ? `${Math.round(d.fps_src)} к/с` : "", esc(codecName(d.codec))].filter(Boolean).join(" · ")], ["Задача", id, 1], ["Дата анализа", dt(p.created_at + (d.elapsed_sec || 0))], ["Время анализа", dur(d.elapsed_sec || 0)], ["Модель", `v${esc(d.pipeline_version)} · YOLOX-s`, 1], ["Каталог правил", "от 17.10.2026", 1]].map(([l, v, m]) => `<div><div class="lab">${l}</div><div class="v ${m ? "mono" : ""} num">${v}</div></div>`).join("")}</div>`;
     const catTbl = `<div class="tbox"><table class="t"><thead><tr><th style="width:8mm">№</th><th>Категория</th><th style="text-align:right">Результат</th></tr></thead><tbody>${(d.checked || []).map((c, i) => `<tr><td class="mono">0${i + 1}</td><td style="font-size:9pt">${esc(c.category)}<div style="font-size:7.8pt;line-height:1.35;color:var(--label)">${esc(c.note)}</div></td><td style="text-align:right">${c.result === "found" ? `<span class="tag d"><span class="sh d"></span>находка</span>` : c.result === "not_checked" ? `<span class="tag n">не проверялось</span>` : c.result === "not_applicable" ? `<span class="tag n">не применимо</span>` : `<span class="tag ok">${sh("ok")}не обнаружено</span>`}</td></tr>`).join("")}</tbody></table></div>`;
     const limits = `<ul class="lim"><li>Анализируется только изображение: звук, проводки, кассовый журнал, сверка и подлинность банкнот не проверяются.</li><li>Лица не распознаются; люди различаются по роли и положению в кадре (кассир, клиент, посетитель).</li><li>В этой версии не проверяются: состояние сейфа и ключа, закрытие двери, порядок пересчёта и предъявление документа — для них нужен отдельный детектор.</li><li>Ссылки на нормы берутся из каталога правил, сверенного с adilet.zan.kz, и не генерируются моделью.</li>${d.timed_out ? "<li>Анализ не уложился в предел времени: результат частичный.</li>" : ""}</ul>`;
     const pages = [];
@@ -384,7 +395,7 @@
       });
       pages.push(`<section class="page">${hdr(total, total)}<h2 style="margin-top:6mm"><span class="n">0${fs.length + 3}</span>Как проводился анализ</h2>
         <div class="tbox"><table class="t"><thead><tr><th style="width:16mm">Этап</th><th>Что делалось</th><th>Результат</th></tr></thead><tbody>
-          <tr><td class="mono">01</td><td>Приём файла</td><td>${mb(p.size_bytes)} · ${esc(p.filename)}</td></tr><tr><td class="mono">02</td><td>Проверка файла</td><td>${esc(d.codec || "")} · ${d.width}×${d.height} · ${(d.duration_sec || 0).toFixed(1).replace(".", ",")} с</td></tr>
+          <tr><td class="mono">01</td><td>Приём файла</td><td>${mb(p.size_bytes)} · ${esc(p.filename)}</td></tr><tr><td class="mono">02</td><td>Проверка файла</td><td>${esc(codecName(d.codec))} · ${d.width}×${d.height} · ${(d.duration_sec || 0).toFixed(1).replace(".", ",")} с</td></tr>
           <tr><td class="mono">03</td><td>Поиск людей и предметов: ${d.fps || 5} кадров в секунду (YOLOX-s, ByteTrack)</td><td>${d.frames_total} кадров · ${((d.scene || {}).tracks || []).length} человек в кадре</td></tr><tr><td class="mono">04</td><td>Сопоставление с каталогом правил</td><td>7 категорий · ${fs.length} находок · режим «${esc(d.mode || "полный")}»</td></tr>
           <tr><td class="mono">05</td><td>Кадры-доказательства и заключение</td><td>${fs.reduce((a, f) => a + ((res.violations[fs.indexOf(f)] || {}).evidence_frames || []).length, 0)} кадров извлечены из исходного файла без изменений · ${dur(d.elapsed_sec || 0)}</td></tr></tbody></table></div>
         <div class="meta" style="margin-top:3.5mm">${[["Обработка", "на сервере команды, без внешних ИИ-сервисов"], ["Модели", "открытые, локальные, лицензии Apache-2.0 / MIT"], ["Лица", "не распознаются"], ["Хранение видео", "удаляется сразу после анализа"], ["Хранение результата", "24 часа"], ["Повторяемость", "тот же файл и та же версия дают тот же результат"]].map(([l, v]) => `<div><div class="lab">${l}</div><div class="v" style="font-size:8.6pt">${v}</div></div>`).join("")}</div>
@@ -396,5 +407,13 @@
     document.title = `Заключение ${id} — КассаКонтроль`;
   }
 
-  window.KK = { pageIndex, pageJob, pageReport, api, fillRecent };
+  // Общий каркас для простых страниц (каталог правил, помощь, API): боковая панель + верхняя строка.
+  function frame(main, o) {
+    const root = document.getElementById("root");
+    root.innerHTML = shell({ active: o.active, crumbs: o.crumbs, main: `<div class="page" style="max-width:${o.width || "1100px"};width:100%">${main}</div>`,
+      st: o.st || ["Сервис работает", "каталог правил 17.10.2026"], str: o.str || [] });
+    bindCommon(root); fillRecent();
+  }
+
+  window.KK = { pageIndex, pageJob, pageReport, api, fillRecent, frame, sh, I, esc };
 })();

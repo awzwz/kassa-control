@@ -158,13 +158,19 @@ def _clients(sc: S.Scene) -> list[S.Track]:
             and S.dist(S.center(v.box), sc.work) <= 0.9 * sc.h_stand]
 
 
+def _cashier_visible(sc: S.Scene, t: float, tol: float = 0.6) -> bool:
+    ct = sc.ct
+    return bool(ct) and min(abs(p[0] - t) for p in ct.pts) <= tol
+
+
 def rule_outsider(frames, sc: S.Scene) -> Event | None:
     """T08: (А) кто-то подошёл вплотную к кассиру; (Б) при сидящем клиенте в помещении второй стоящий человек."""
     best: Event | None = None
     for v in sc.visitors:
         if v.h < 0.6 * sc.h_stand:
             continue
-        close = [t for t, b in v.pts if S.dist(S.center(b), sc.work) <= 0.5 * sc.h_stand]
+        # кассир должен быть виден в этот момент: иначе человек на его месте — скорее всего сам кассир после разрыва трека
+        close = [t for t, b in v.pts if S.dist(S.center(b), sc.work) <= 0.5 * sc.h_stand and _cashier_visible(sc, t)]
         if len(close) >= sc.fps:  # ≥ 1 с рядом с кассиром (ближе половины роста)
             t = close[0]
             ev = Event("T08", t, "высокая" if len(close) >= 3 * sc.fps else "средняя")

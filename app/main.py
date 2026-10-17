@@ -42,10 +42,32 @@ def root_redirect() -> RedirectResponse:
     return RedirectResponse("/ui/index.html")
 
 
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon() -> RedirectResponse:
+    return RedirectResponse("/ui/favicon.svg")
+
+
 def require_key(x_api_key: str | None = Header(default=None)) -> None:
     """Ключ сравниваем за постоянное время, чтобы его нельзя было подобрать по задержке."""
     if not x_api_key or not secrets.compare_digest(x_api_key, config.API_KEY):
         raise HTTPException(status_code=401, detail="Неверный или отсутствующий X-API-Key")
+
+
+_PROBE_RU = {
+    "Invalid data found when processing input": "данные не распознаны как видео",
+    "moov atom not found": "файл обрезан или не докачан",
+    "в файле нет видеодорожки": "в файле нет видеодорожки",
+    "нулевая длительность": "нулевая длительность",
+}
+
+
+def _probe_reason(msg: str, path: str) -> str:
+    """Причина отказа ffprobe без пути к файлу на сервере, по-русски для известных случаев."""
+    msg = msg.replace(path + ": ", "").replace(path, "файл").strip()
+    for en, ru in _PROBE_RU.items():
+        if en in msg:
+            return ru
+    return msg[:120] or "формат не распознан"
 
 
 @app.post("/api/v1/analyze", response_model=AnalyzeAccepted, dependencies=[Depends(require_key)])
@@ -66,7 +88,7 @@ async def analyze(file: UploadFile) -> AnalyzeAccepted:
         try:
             probe(tmp)
         except NotAVideo as e:
-            raise HTTPException(status_code=415, detail=f"Это не видеофайл: {e}") from e
+            raise HTTPException(status_code=415, detail=f"Это не видеофайл: {_probe_reason(str(e), str(tmp))}") from e
     except HTTPException:
         tmp.unlink(missing_ok=True)
         raise
@@ -116,6 +138,9 @@ def job_progress(job_id: str) -> dict:
         "filename": job["filename"],
         "size_bytes": job["size_bytes"],
         "created_at": job["created_at"],
+        "finished_at": job["finished_at"],
+        "error": job["error"],
+        "queue_ahead": store.queue_ahead(job_id) if job["status"] == "queued" else 0,
         "progress": json.loads(job["progress_json"]) if job["progress_json"] else None,
         "details": json.loads(job["details_json"]) if job["details_json"] else None,
     }

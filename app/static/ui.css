@@ -156,9 +156,9 @@ svg{display:block}
 
 /* рабочая область результата */
 .body{display:grid;grid-template-columns:1fr 452px;min-height:0;overflow:hidden}
-.left{padding:16px 20px 16px 24px;display:flex;flex-direction:column;gap:14px;min-width:0;min-height:0;overflow:hidden}
+.left{padding:16px 20px 16px 24px;display:flex;flex-direction:column;gap:14px;min-width:0;min-height:0;overflow:auto}
 .card{border:1px solid var(--line);border-radius:var(--r);background:var(--bg);box-shadow:var(--shadow)}
-.view{display:flex;gap:14px;padding:12px;flex:1 1 0;min-height:0}
+.view{display:flex;gap:14px;padding:12px;flex:1 1 auto;min-height:360px}
 .player{position:relative;width:186px;flex:none;border-radius:var(--r2);overflow:hidden;background:var(--video)}
 .player img{width:100%;height:100%;object-fit:cover;display:block}
 .ovl{position:absolute;font-family:var(--mono);font-size:11px;line-height:18px;padding:0 6px;border-radius:5px;background:rgba(0,0,0,.72);color:#fff}
@@ -183,9 +183,10 @@ svg{display:block}
 .frames .th img{width:100%;height:100%;object-fit:cover;display:block}
 .frames.tall .th{height:212px}
 .frames .th.ev{outline:2px solid var(--danger);outline-offset:-2px}
-.frames figcaption{display:flex;justify-content:space-between;margin-top:5px;font-size:11.5px;color:var(--label)}
+.frames figcaption{display:flex;justify-content:space-between;gap:4px;margin-top:5px;font-size:11.5px;color:var(--label);white-space:nowrap;overflow:hidden}
+.frames figcaption span:last-child{overflow:hidden;text-overflow:ellipsis}
 .frames figcaption .mono{color:var(--text)}
-.sig{border-top:1px solid var(--line);padding-top:8px}
+.sig{border-top:1px solid var(--line);padding-top:8px;flex:1;min-height:0;overflow:auto}
 .sig table{width:100%;border-collapse:collapse;font-size:12.5px}
 .sig td{padding:4px 0;vertical-align:top;color:var(--text2)}
 .sig td.mono{width:74px;color:var(--label);font-size:11.5px}
@@ -347,6 +348,9 @@ svg{display:block}
 .priv svg{width:15px;height:15px;color:var(--ok);flex:none;margin-top:2px}
 
 /* телефон */
+/* средние экраны (ноутбук 13″, узкое окно): правая колонка уже, крупный кадр слева прячем — он дублирует кадр «событие» */
+@media (max-width:1400px){.body{grid-template-columns:1fr 400px}.player{display:none}}
+@media (max-width:1100px){.body{grid-template-columns:1fr 360px}.zoom{display:none}}
 @media (max-width:600px){
   .app,.app.rail{display:block;height:auto!important;overflow:visible!important}
   .side{display:none}
@@ -399,3 +403,43 @@ svg{display:block}
   .pgh .acts{margin-left:0!important}
 }
 .mtop{display:none;align-items:center;gap:10px}
+
+/* простые страницы: каталог правил, помощь, API */
+.page.narrow{max-width:1100px}
+.doc-h1{margin:0 0 4px;font-size:26px;line-height:34px;font-weight:600;letter-spacing:-.02em}
+.doc-lead{color:var(--text2);margin:0 0 18px;font-size:15px;max-width:860px}
+.doc-h2{font-size:18px;line-height:26px;margin:26px 0 10px;font-weight:600;display:flex;gap:10px;align-items:center}
+.doc-h2 code{font:600 14px/22px var(--mono)}
+.doc-kv{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--bg)}
+.doc-kv>div{display:grid;grid-template-columns:160px 1fr;padding:10px 14px;border-bottom:1px solid var(--line);font-size:13.5px}
+.doc-kv>div:last-child{border:0}
+.doc-kv>div>span:first-child{color:var(--label)}
+.doc-code{font:12.5px/20px var(--mono);background:var(--muted);padding:1px 6px;border-radius:4px;border:1px solid var(--line)}
+.doc-block{background:#0F1218;color:#E8EBF0;border-radius:10px;overflow:hidden;margin-bottom:14px}
+.doc-block .hd{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid #2A3140;font-size:12.5px;color:#A9B1BE}
+.doc-block pre{margin:0;padding:12px 14px;font:12.5px/19px var(--mono);white-space:pre-wrap;overflow-wrap:anywhere}
+.doc-block .k{color:#7AA7FF}.doc-block .s{color:#9FE0B8}.doc-block .c{color:#8A93A2}.doc-block .n{color:#F7B955}
+.doc-tbl{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:10px;background:var(--bg)}
+.doc-tbl th{text-align:left;font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--label);font-weight:500;padding:8px 10px;border-bottom:1px solid var(--line)}
+.doc-tbl td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.doc-tbl td:first-child{font:12.5px/20px var(--mono);white-space:nowrap}
+.doc-m{font:600 11px/16px var(--mono);padding:1px 5px;border-radius:4px}
+.doc-m.post{background:var(--okBg);color:var(--ok)}.doc-m.get{background:var(--selBg);color:var(--sel)}
+[data-theme="dark"] .doc-m.get{color:var(--text)}
+.doc-grid{display:grid;grid-template-columns:1fr 440px;gap:28px;align-items:start}
+.doc-note{display:flex;gap:10px;padding:12px 14px;border-radius:10px;background:var(--selBg);font-size:13.5px;line-height:21px;margin-top:14px;color:var(--text2)}
+.rc{border:1px solid var(--line);border-radius:10px;background:var(--bg);margin-bottom:12px;overflow:hidden}
+.rc .h{display:flex;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--side)}
+.rc .h b{font-weight:600;font-size:15px}
+.rc .h .mono{color:var(--brandText);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase}
+.rc .b{padding:12px 16px;display:grid;grid-template-columns:170px 1fr;gap:8px 16px;font-size:13.5px}
+.rc .b .lab{padding-top:2px}
+.rc q{display:block;quotes:none;color:var(--text2);border-left:2px solid var(--brand);padding-left:10px}
+.rc .st{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:6px;font-size:12px;font-weight:500;margin-left:auto;white-space:nowrap}
+.rc .st.on{color:var(--ok);background:var(--okBg)}.rc .st.off{color:var(--text2);background:var(--muted);border:1px solid var(--line)}
+.mom{font-size:12px;color:var(--label);margin:22px 0 8px;letter-spacing:.06em;text-transform:uppercase;font-family:var(--mono)}
+.help-box{border:1px solid var(--line);border-radius:10px;padding:14px 16px;background:var(--side);margin:12px 0}
+.doc-help p,.doc-help li{color:var(--text2);font-size:15px;line-height:24px}
+.doc-help b{color:var(--text)}
+.doc-help ol,.doc-help ul{padding-left:22px}
+@media (max-width:1000px){.doc-grid{grid-template-columns:1fr}.rc .b{grid-template-columns:1fr}}
