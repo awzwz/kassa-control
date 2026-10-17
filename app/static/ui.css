@@ -320,7 +320,7 @@ svg{display:block}
 .errb svg{width:17px;height:17px;color:var(--dangerText);flex:none;margin-top:1px}
 .errb b{display:block;font-weight:600}
 .errb span{color:var(--text2)}
-.tbl{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--bg)}
+.tbl{border:1px solid var(--line);border-radius:var(--r);overflow:auto;background:var(--bg)}
 .tbl table{width:100%;border-collapse:collapse}
 .tbl th{text-align:left;padding:10px 14px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--label);font-weight:500;background:var(--side);border-bottom:1px solid var(--line);white-space:nowrap}
 .tbl td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
@@ -349,7 +349,7 @@ svg{display:block}
 
 /* телефон */
 /* средние экраны (ноутбук 13″, узкое окно): правая колонка уже, крупный кадр слева прячем — он дублирует кадр «событие» */
-@media (max-width:1400px){.body{grid-template-columns:1fr 400px}.player{display:none}}
+@media (max-width:1400px){.body{grid-template-columns:1fr 400px}.player{display:none}.lst{grid-template-columns:1fr 300px}.tbl th:nth-child(2),.tbl td:nth-child(2){display:none}}
 @media (max-width:1100px){.body{grid-template-columns:1fr 360px}.zoom{display:none}}
 @media (max-width:600px){
   .app,.app.rail{display:block;height:auto!important;overflow:visible!important}
