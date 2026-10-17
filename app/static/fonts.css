@@ -1,4 +1,4 @@
 /* Inter и Geist — SIL OFL 1.1, файлы лежат локально, интернет не нужен */
-@font-face{font-family:"Inter";src:url("fonts/InterVariable.woff2") format("woff2");font-weight:100 900;font-display:block}
-@font-face{font-family:"Geist";src:url("fonts/Geist-Variable.woff2") format("woff2");font-weight:100 900;font-display:block}
-@font-face{font-family:"Geist Mono";src:url("fonts/GeistMono-Variable.woff2") format("woff2");font-weight:100 900;font-display:block}
+@font-face{font-family:"Inter";src:url("fonts/InterVariable.woff2") format("woff2");font-weight:100 900;font-display:swap}
+@font-face{font-family:"Geist";src:url("fonts/Geist-Variable.woff2") format("woff2");font-weight:100 900;font-display:swap}
+@font-face{font-family:"Geist Mono";src:url("fonts/GeistMono-Variable.woff2") format("woff2");font-weight:100 900;font-display:swap}
